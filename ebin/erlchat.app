@@ -1,8 +1,9 @@
 {application,erlchat,
              [{description,"A chat server in Erlang"},
               {vsn,"1"},
-              {modules,[erlchat_app]},
+              {modules,[erlchat,erlchat_app,erlchat_sup,stream_handler,
+                        toppage_handler]},
               {registered,[]},
-              {applications,[kernel,stdlib,crypto,ssl,bullet]},
+              {applications,[kernel,stdlib,cowboy]},
               {mod,{erlchat_app,[]}},
               {env,[]}]}.

@@ -3,6 +3,6 @@
             {vsn, "1"},
             {modules, []},
             {registered, []},
-            {applications, [kernel, stdlib, crypto, ssl, bullet]},
+            {applications, [kernel, stdlib, cowboy]},
             {mod, {erlchat_app, []}},
             {env, []}]}.

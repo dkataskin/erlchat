@@ -26,25 +26,18 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(erlchat_app).
--behaviour(application).
+-module(erlchat).
 
 -author("Dmitry Kataskin").
 
--export([start/2, stop/1]).
+-export([start/0, stop/0]).
 
-start(_Type, _Args) ->
-            Dispatch = cowboy_router:compile([
-              {'_', [
-                {"/", toppage_handler, []},
-                {"/bullet", bullet_handler, [{handler, stream_handler}]},
-                {"/static/[...]", cowboy_static, {priv_dir, bullet, []}}
-              ]}
-            ]),
-            {ok, _} = cowboy:start_http(http, 100,
-              [{port, 8085}], [{env, [{dispatch, Dispatch}]}]
-            ),
-            erlchat_sup:start_link().
+start() ->
+    ok = application:start(crypto),
+    ok = application:start(ranch),
+    ok = application:start(cowlib),
+    ok = application:start(cowboy),
+    ok = application:start(erlchat).
 
-stop(_State) ->
-		        ok.
+stop() ->
+    application:stop(erlchat).
