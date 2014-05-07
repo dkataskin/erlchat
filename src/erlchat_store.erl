@@ -30,19 +30,28 @@
 -module(erlchat_store).
 -author("Dmitry Kataskin").
 
-%% API
--export([start/1, stop/0, get_user_info/1, set_user_status/2, get_conversations/1]).
+-include("erlchat.hrl").
 
-start(Args) ->
-            Type = proplists:get_keys(storage).
+-define(store_type_key, type).
+-define(mnesia_backend, mnesia).
+
+%% API
+-export([start/1, stop/0, get_user/1, set_user_status/2, get_conversations/1]).
+
+start(Args) when is_list(Args) ->
+                case proplists:get_value(?store_type_key, Args) of
+                  ?mnesia_backend -> gen_server:start_link({global, ?store_server}, erlchat_mnesia, Args, []);
+                  _ -> {error, unknown_store_backend}
+                end.
 
 stop() ->
-        ok.
+      ok.
 
-get_user_info(UserId) ->
-                ok.
+get_user(UserId) ->
+                gen_server:call(?store_server, {get_user, UserId}).
 
 set_user_status(UserId, Status) ->
-                ok.
+                erlang:error(not_implemented).
 
-get_conversations(UserId) -> [].
+get_conversations(UserId) ->
+                erlang:error(not_implemented).

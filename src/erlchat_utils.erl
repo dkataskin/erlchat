@@ -30,7 +30,7 @@
 -author("Dmitry Kataskin").
 
 %% API
--export([]).
+-export([get_unique_id/0]).
 
 get_unique_id() ->
                 {M, S, U} = erlang:now(),

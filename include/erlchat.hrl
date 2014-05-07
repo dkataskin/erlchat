@@ -26,13 +26,19 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--author("kotoff").
+-author("Dmitry Kataskin").
 
--record(user, {id = <<>>,
-               nickname = <<"">>}).
+-define(store_server, erlchat_store).
 
--record(message, {id = <<>>,
-                  type = private,
-                  sender = <<>>,
-                  recipients = [],
-                  text = <<"">>}).
+-record(erlchat_user, {id = <<>>,
+                       nickname = <<"">>}).
+
+-record(erlchat_user_info, {user_id = <<>>,
+                            status = offline,
+                            last_seen = undefined}).
+
+-record(erlchat_message, {id = <<>>,
+                          type = private,
+                          sender = <<>>,
+                          recipients = [],
+                          text = <<"">>}).
