@@ -35,10 +35,12 @@
 
 -record(erlchat_user_info, {user_id = <<>>,
                             status = offline,
+                            avatar = "",
                             last_seen = undefined}).
 
 -record(erlchat_message, {id = <<>>,
                           type = private,
                           sender = <<>>,
                           recipients = [],
-                          text = <<"">>}).
+                          text = <<"">>,
+                          sent = erlang:now()}).
