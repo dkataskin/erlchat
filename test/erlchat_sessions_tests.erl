@@ -26,23 +26,21 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+-module(erlchat_sessions_tests).
 -author("Dmitry Kataskin").
 
--define(store_server, erlchat_store).
--define(session_server, erlchat_sessions).
+-include("erlchat.hrl").
 
--record(erlchat_user, {id = <<>>,
-                       nickname = <<"">>}).
+-include_lib("eunit/include/eunit.hrl").
+-include_lib("xmerl/include/xmerl.hrl").
 
--record(chat_session, {user_id = <<>>,
-                       session_key = <<>>,
-                       status = offline,
-                       avatar = "",
-                       last_seen = undefined}).
 
--record(erlchat_message, {id = <<>>,
-                          type = private,
-                          sender = <<>>,
-                          recipients = [],
-                          text = <<"">>,
-                          sent = erlang:now()}).
+%% API
+-export([]).
+
+sessions_server_test_() ->
+                {setup,
+                 fun() -> erlchat_sessions:start() end,
+                 fun(_) -> ok end,
+                 [?_assertMatch({ok, initiated}, erlchat_sessions:init_session(<<"user id">>, <<"session key">>))
+                 ]}.

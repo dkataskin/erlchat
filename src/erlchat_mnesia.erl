@@ -38,11 +38,12 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
-init(Args) ->
+init(_Args) ->
           application:set_env(mnesia, dir, filename:join([code:priv_dir(erlchat), ?data_dir])),
           application:start(mnesia),
           Nodes = erlang:node(),
-          create_schema(Nodes).
+          create_schema(Nodes),
+          {ok, no_state}.
 
 handle_call({get_user, Id}, _From, State) ->
                 User = #erlchat_user { id = Id },
@@ -71,8 +72,6 @@ create_schema(Nodes) ->
                                                       {index, #erlchat_message.id},
                                                       {disc_only_copies, Nodes},
                                                       {type, set}]),
+                ok.
 
-                mnesia:create_table(erlchat_user_info, [{attributes, record_info(fields, erlchat_user_info)},
-                                                        {index, #erlchat_user_info.user_id},
-                                                        {ram_copies, Nodes},
-                                                        {type, set}]).
+

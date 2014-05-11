@@ -40,7 +40,7 @@
 
 start(Args) when is_list(Args) ->
                 case proplists:get_value(?store_type_key, Args) of
-                  ?mnesia_backend -> gen_server:start_link({global, ?store_server}, erlchat_mnesia, Args, []);
+                  ?mnesia_backend -> gen_server:start_link({local, ?store_server}, erlchat_mnesia, Args, []);
                   _ -> {error, unknown_store_backend}
                 end.
 
