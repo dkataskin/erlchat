@@ -26,16 +26,17 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 -module(erlchat_sessions).
 -author("Dmitry Kataskin").
+
+-define(sessions_table, erlchat_sessions).
 
 -include("erlchat.hrl").
 
 -behaviour(gen_server).
 
 %% API
--export([start/0, init_session/2]).
+-export([start/0, init_session/2, terminate_session/1, get_sessions/1]).
 
 %% gen server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -44,25 +45,39 @@
 start() ->
         gen_server:start_link({local, ?session_server}, ?MODULE, [], []).
 
-
 init_session(UserId, SessionKey) ->
-        gen_server:call(?session_server, {init_session, {UserId, SessionKey}}).
+                gen_server:call(?session_server, {init_session, {UserId, SessionKey}}).
+
+get_sessions(UserId) ->
+                gen_server:call(?session_server, {get_sessions, UserId}).
+
+terminate_session(SessionKey) ->
+                gen_server:call(?session_server, {terminate_session, SessionKey}).
 
 % gen server callbacks
 init(_Args) ->
-        application:start(mnesia),
-        Nodes = erlang:node(),
-        create_schema(Nodes),
-        {ok, no_state}.
+        Id = ets:new(?sessions_table, [duplicate_bag,
+                                      {keypos, #erlchat_session.session_key},
+                                      {read_concurrency, true}]),
+        {ok, Id}.
 
 handle_call({init_session, {UserId, SessionKey}}, _From, State) ->
+                SessionsTableId = State,
+                true = ets:insert(SessionsTableId, #erlchat_session{ session_key = SessionKey,
+                                                                     user_id = UserId,
+                                                                     last_seen = erlang:now() }),
                 {reply, {ok, initiated}, State};
 
-handle_call({terminated_session, SessionKey}, _From, State) ->
-                {reply, {ok, terminated}, State};
+handle_call({get_sessions, UserId}, _From, State) ->
+                SessionsTableId = State,
+                Keys = ets:match(SessionsTableId, {erlchat_session, '$1', UserId, '_', '_', '_'}),
+                Sessions = lists:map(fun([SessionKey]) -> ets:lookup(SessionsTableId, SessionKey) end, Keys),
+                {reply, {ok, Sessions}, State};
 
-handle_call(_Request, _From, State) ->
-                {reply, ok, State}.
+handle_call({terminate_session, SessionKey}, _From, State) ->
+                SessionsTableId = State,
+                ets:delete(SessionsTableId, SessionKey),
+                {reply, {ok, terminated}, State}.
 
 handle_cast(_Request, State) ->
                 {noreply, State}.
@@ -75,9 +90,3 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
                 {ok, State}.
-
-create_schema(Nodes) ->
-                mnesia:create_table(chat_session, [{attributes, record_info(fields, chat_session)},
-                                                   {index, #chat_session.user_id},
-                                                   {ram_copies, Nodes},
-                                                   {type, set}]).

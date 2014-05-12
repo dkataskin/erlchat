@@ -42,5 +42,6 @@ sessions_server_test_() ->
                 {setup,
                  fun() -> erlchat_sessions:start() end,
                  fun(_) -> ok end,
-                 [?_assertMatch({ok, initiated}, erlchat_sessions:init_session(<<"user id">>, <<"session key">>))
+                 [?_assertMatch({ok, initiated}, erlchat_sessions:init_session(<<"user id">>, <<"session key">>)),
+                  ?_assertMatch({ok, terminated}, erlchat_sessions:terminate_session(<<"session key">>))
                  ]}.

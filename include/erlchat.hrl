@@ -31,14 +31,14 @@
 -define(store_server, erlchat_store).
 -define(session_server, erlchat_sessions).
 
--record(erlchat_user, {id = <<>>,
+-record(erlchat_user, {id = <<"">>,
                        nickname = <<"">>}).
 
--record(chat_session, {user_id = <<>>,
-                       session_key = <<>>,
-                       status = offline,
-                       avatar = "",
-                       last_seen = undefined}).
+-record(erlchat_session, {session_key = <<"">>,
+                          user_id = <<"">>,
+                          status = offline,
+                          avatar = "",
+                          last_seen = undefined}).
 
 -record(erlchat_message, {id = <<>>,
                           type = private,
