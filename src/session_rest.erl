@@ -26,40 +26,28 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(stream_handler).
+-module(session_rest).
 -author("Dmitry Kataskin").
 
--export([init/4]).
--export([stream/3]).
--export([info/3]).
--export([terminate/2]).
+%% rest handler callbacks
+-export([init/3, allowed_methods/2, content_types_accepted/2, content_types_provided/2]).
 
--define(PERIOD, 1000).
+%% custom callbacks
+-export([init_session/2, get_session/2]).
 
-init(_Transport, Req, _Opts, _Active) ->
-            io:format("bullet init~n"),
-            TRef = erlang:send_after(?PERIOD, self(), refresh),
-            {ok, Req, TRef}.
+init(_Transport, _Req, []) ->
+                {upgrade, protocol, cowboy_rest}.
 
-stream(<<"ping: ", Name/binary>>, Req, State) ->
-            io:format("ping ~p received~n", [Name]),
-            {reply, <<"pong">>, Req, State};
+allowed_methods(Req, State) ->
+                {[<<"GET">>, <<"POST">>], Req, State}.
 
-stream(Data, Req, State) ->
-            io:format("stream received ~s~n", [Data]),
-            {ok, Req, State}.
+content_types_accepted(Req, State) ->
+                {[{{<<"application">>, <<"json">>, []}, init_session}], Req, State}.
 
-info(refresh, Req, _) ->
-            TRef = erlang:send_after(?PERIOD, self(), refresh),
-            DateTime = cowboy_clock:rfc1123(),
-            io:format("clock refresh timeout: ~s~n", [DateTime]),
-            {reply, DateTime, Req, TRef};
+content_types_provided(Req, State) ->
+                {[{<<"application/json">>, get_session}], Req, State}.
 
-info(Info, Req, State) ->
-            io:format("info received ~p~n", [Info]),
-            {ok, Req, State}.
+init_session(Req, State) ->
+                {ok, Body, Req1} = cowboy_req:body_qs(Req).
 
-terminate(_Req, TRef) ->
-            io:format("bullet terminate~n"),
-            erlang:cancel_timer(TRef),
-            ok.
+get_session(Req, State) -> ok.
