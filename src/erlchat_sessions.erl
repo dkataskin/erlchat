@@ -32,18 +32,22 @@
 -define(sessions_table, erlchat_sessions).
 
 -include("erlchat.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
 
 -behaviour(gen_server).
 
 %% API
--export([start/0, init_session/2, terminate_session/1, get_sessions/1]).
+-export([start_link/0, stop/0, init_session/2, terminate_session/1, get_sessions/1]).
 
 %% gen server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 %% API
-start() ->
+start_link() ->
         gen_server:start_link({local, ?session_server}, ?MODULE, [], []).
+
+stop() ->
+        gen_server:call(?session_server, stop).
 
 init_session(UserId, SessionKey) ->
                 gen_server:call(?session_server, {init_session, {UserId, SessionKey}}).
@@ -56,28 +60,32 @@ terminate_session(SessionKey) ->
 
 % gen server callbacks
 init(_Args) ->
-        Id = ets:new(?sessions_table, [duplicate_bag,
+        Id = ets:new(?sessions_table, [bag,
                                       {keypos, #erlchat_session.session_key},
                                       {read_concurrency, true}]),
         {ok, Id}.
 
 handle_call({init_session, {UserId, SessionKey}}, _From, State) ->
                 SessionsTableId = State,
-                true = ets:insert(SessionsTableId, #erlchat_session{ session_key = SessionKey,
-                                                                     user_id = UserId,
-                                                                     last_seen = erlang:now() }),
-                {reply, {ok, initiated}, State};
+                Session = #erlchat_session{ session_key = SessionKey,
+                                            user_id = UserId,
+                                            last_seen = erlang:now() },
+                true = ets:insert(SessionsTableId, Session),
+                {reply, {initiated, Session}, State};
 
 handle_call({get_sessions, UserId}, _From, State) ->
                 SessionsTableId = State,
-                Keys = ets:match(SessionsTableId, {erlchat_session, '$1', UserId, '_', '_', '_'}),
-                Sessions = lists:map(fun([SessionKey]) -> ets:lookup(SessionsTableId, SessionKey) end, Keys),
+                MS = ets:fun2ms(fun(S = #erlchat_session { user_id = SUserId }) when SUserId =:= UserId -> S end),
+                Sessions = ets:select(SessionsTableId, MS),
                 {reply, {ok, Sessions}, State};
 
 handle_call({terminate_session, SessionKey}, _From, State) ->
                 SessionsTableId = State,
                 ets:delete(SessionsTableId, SessionKey),
-                {reply, {ok, terminated}, State}.
+                {reply, {ok, terminated}, State};
+
+handle_call(stop, _From, State) ->
+                {stop, normal, ok, State}.
 
 handle_cast(_Request, State) ->
                 {noreply, State}.
