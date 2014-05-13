@@ -61,13 +61,13 @@ terminate_session(SessionKey) ->
 % gen server callbacks
 init(_Args) ->
         Id = ets:new(?sessions_table, [bag,
-                                      {keypos, #erlchat_session.session_key},
+                                      {keypos, #erlchat_session.id},
                                       {read_concurrency, true}]),
         {ok, Id}.
 
 handle_call({init_session, {UserId, SessionKey}}, _From, State) ->
                 SessionsTableId = State,
-                Session = #erlchat_session{ session_key = SessionKey,
+                Session = #erlchat_session{ id = SessionKey,
                                             user_id = UserId,
                                             last_seen = erlang:now() },
                 true = ets:insert(SessionsTableId, Session),

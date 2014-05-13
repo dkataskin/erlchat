@@ -76,6 +76,8 @@ terminate_session_test_() ->
                     erlchat_sessions:start_link(),
                     UserId = <<"user1">>,
                     {initiated, Session} = erlchat_sessions:init_session(UserId, <<"session1">>),
+                    {initiated, _} = erlchat_sessions:init_session(UserId, <<"session2">>),
+                    {initiated, _} = erlchat_sessions:init_session(UserId, <<"session3">>),
                     {UserId, Session}
                   end,
                   fun(_) -> erlchat_sessions:stop() end,
@@ -96,10 +98,10 @@ get_sessions({UserId, Sessions}) when is_list(Sessions) ->
                 Asserts = lists:foldl(FoldFun, [], Sessions),
                 [?_assertEqual(lists:flatlength(Sessions), lists:flatlength(TestSessions)) | Asserts].
 
-terminate_session({UserId, #erlchat_session{ session_key = Key }}) ->
-                {ok, terminated} = erlchat_sessions:terminate_session(Key),
+terminate_session({UserId, #erlchat_session{ id = SessionId }}) ->
+                {ok, terminated} = erlchat_sessions:terminate_session(SessionId),
                 {ok, Sessions} = erlchat_sessions:get_sessions(UserId),
-                Pred = fun(#erlchat_session { session_key = SessionKey }) ->
-                        SessionKey =/= Key
+                Pred = fun(#erlchat_session { id = Id }) ->
+                        SessionId =/= Id
                        end,
                 [?_assert(lists:all(Pred, Sessions))].

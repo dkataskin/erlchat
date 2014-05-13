@@ -32,12 +32,12 @@
 -define(session_server, erlchat_sessions).
 
 -record(erlchat_user, {id = <<"">>,
+                       avatar = "",
                        nickname = <<"">>}).
 
--record(erlchat_session, {session_key = <<"">>,
+-record(erlchat_session, {id = <<"">>,
                           user_id = <<"">>,
                           status = offline,
-                          avatar = "",
                           last_seen = undefined}).
 
 -record(erlchat_message, {id = <<>>,
