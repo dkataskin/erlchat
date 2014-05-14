@@ -57,7 +57,8 @@ init_session(Req, State) ->
                 case parse_session(Body, Req1, State) of
                   {ok, {SessionId, UserId}} ->
                     {initiated, Session} = erlchat_sessions:init_session(UserId, SessionId),
-                    {session_to_json(Session), Req1, State};
+                    {ok, Req2} = cowboy_req:reply(201, [], session_to_json(Session), Req1),
+                    {ok, Req2, State};
 
                   {error, Response} ->
                     Response
@@ -74,7 +75,7 @@ parse_session([{Body, true}], Req, State) ->
                     Session = jsx:decode(Body),
                     case Session of
                       [{<<"user_id">>, UserId}, {<<"session_id">>, SessionId}] ->
-                        {ok, SessionId, UserId };
+                        {ok, {SessionId, UserId}};
 
                       _ ->
                         {error, error_response(bad_request, ?input_not_session, Req, State)}

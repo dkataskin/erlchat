@@ -49,8 +49,8 @@ start_link() ->
 stop() ->
         gen_server:call(?session_server, stop).
 
-init_session(UserId, SessionKey) ->
-                gen_server:call(?session_server, {init_session, {UserId, SessionKey}}).
+init_session(UserId, SessionId) ->
+                gen_server:call(?session_server, {init_session, {UserId, SessionId}}).
 
 get_sessions(UserId) ->
                 gen_server:call(?session_server, {get_sessions, UserId}).
@@ -65,9 +65,9 @@ init(_Args) ->
                                       {read_concurrency, true}]),
         {ok, Id}.
 
-handle_call({init_session, {UserId, SessionKey}}, _From, State) ->
+handle_call({init_session, {UserId, SessionId}}, _From, State) ->
                 SessionsTableId = State,
-                Session = #erlchat_session{ id = SessionKey,
+                Session = #erlchat_session{ id = SessionId,
                                             user_id = UserId,
                                             last_seen = erlang:now() },
                 true = ets:insert(SessionsTableId, Session),
