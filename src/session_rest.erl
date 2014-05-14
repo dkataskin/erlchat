@@ -29,6 +29,11 @@
 -module(session_rest).
 -author("Dmitry Kataskin").
 
+-include("erlchat.hrl").
+
+-define(input_not_json, <<"Input wasn't in a valid application/json format">>).
+-define(input_not_session, <<"Input wasn't a valid session object">>).
+
 %% rest handler callbacks
 -export([init/3, allowed_methods/2, content_types_accepted/2, content_types_provided/2]).
 
@@ -42,12 +47,50 @@ allowed_methods(Req, State) ->
                 {[<<"GET">>, <<"POST">>], Req, State}.
 
 content_types_accepted(Req, State) ->
-                {[{{<<"application">>, <<"json">>, []}, init_session}], Req, State}.
+                {[{<<"application/json">>, init_session}], Req, State}.
 
 content_types_provided(Req, State) ->
                 {[{<<"application/json">>, get_session}], Req, State}.
 
 init_session(Req, State) ->
-                {ok, Body, Req1} = cowboy_req:body_qs(Req).
+                {ok, Body, Req1} = cowboy_req:body_qs(Req),
+                case parse_session(Body, Req1, State) of
+                  {ok, {SessionId, UserId}} ->
+                    {initiated, Session} = erlchat_sessions:init_session(UserId, SessionId),
+                    {session_to_json(Session), Req1, State};
+
+                  {error, Response} ->
+                    Response
+                end.
 
 get_session(Req, State) -> ok.
+
+parse_session([], Req, State) ->
+                {error, error_response(bad_request, ?input_not_json, Req, State)};
+
+parse_session([{Body, true}], Req, State) ->
+                case jsx:is_json(Body) of
+                  true ->
+                    Session = jsx:decode(Body),
+                    case Session of
+                      [{<<"user_id">>, UserId}, {<<"session_id">>, SessionId}] ->
+                        {ok, SessionId, UserId };
+
+                      _ ->
+                        {error, error_response(bad_request, ?input_not_session, Req, State)}
+                    end;
+
+                  false ->
+                    {error, error_response(bad_request, ?input_not_json, Req, State)}
+                end;
+
+parse_session(_, Req, State) ->
+                {error, error_response(bad_request, ?input_not_json, Req, State)}.
+
+session_to_json(#erlchat_session { id = SessionId, user_id = UserId }) ->
+                jsx:encode([{status, ok}, {user_id, UserId}, {session_id, SessionId}]).
+
+error_response(bad_request, Message, Req, State) ->
+                Json = jsx:encode([{error, [{reason, Message}]}]),
+                {ok, Req1} = cowboy_req:reply(400, [], Json, Req),
+                {ok, Req1, State}.

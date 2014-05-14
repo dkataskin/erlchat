@@ -28,6 +28,10 @@
 
 -author("Dmitry Kataskin").
 
+-ifndef(PRINT).
+-define(PRINT(Var), io:format("DEBUG: ~p:~p - ~p~n~n ~p~n~n", [?MODULE, ?LINE, ??Var, Var])).
+-endif.
+
 -define(store_server, erlchat_store).
 -define(session_server, erlchat_sessions).
 
