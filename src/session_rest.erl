@@ -56,15 +56,23 @@ init_session(Req, State) ->
                 {ok, Body, Req1} = cowboy_req:body_qs(Req),
                 case parse_session(Body, Req1, State) of
                   {ok, {SessionId, UserId}} ->
-                    {initiated, Session} = erlchat_sessions:init_session(UserId, SessionId),
-                    {ok, Req2} = cowboy_req:reply(201, [], session_to_json(Session), Req1),
-                    {ok, Req2, State};
+                    case cowboy_req:method(Req1) of
+                      {<<"POST">>, Req2} ->
+                        {initiated, Session} = erlchat_sessions:init_session(UserId, SessionId),
+                        Req3 = cowboy_req:set_resp_body(session_to_json(Session), Req2),
+                        {true, Req3, State};
+
+                      {_, Req2} ->
+                        {true, Req2, State}
+                    end;
 
                   {error, Response} ->
                     Response
                 end.
 
-get_session(Req, State) -> ok.
+get_session(Req, State) ->
+                Session = #erlchat_session { },
+                {session_to_json(Session), Req, State}.
 
 parse_session([], Req, State) ->
                 {error, error_response(bad_request, ?input_not_json, Req, State)};
