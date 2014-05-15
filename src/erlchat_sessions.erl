@@ -37,7 +37,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, stop/0, init_session/2, terminate_session/1, get_sessions/1]).
+-export([start_link/0, stop/0, init_session/2, terminate_session/1, get_user_sessions/1, get_session/1]).
 
 %% gen server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -52,8 +52,11 @@ stop() ->
 init_session(UserId, SessionId) ->
                 gen_server:call(?session_server, {init_session, {UserId, SessionId}}).
 
-get_sessions(UserId) ->
+get_user_sessions(UserId) ->
                 gen_server:call(?session_server, {get_sessions, UserId}).
+
+get_session(SessionId) ->
+                gen_server:call(?session_server, {get_session, SessionId}).
 
 terminate_session(SessionKey) ->
                 gen_server:call(?session_server, {terminate_session, SessionKey}).
@@ -78,6 +81,14 @@ handle_call({get_sessions, UserId}, _From, State) ->
                 MS = ets:fun2ms(fun(S = #erlchat_session { user_id = SUserId }) when SUserId =:= UserId -> S end),
                 Sessions = ets:select(SessionsTableId, MS),
                 {reply, {ok, Sessions}, State};
+
+handle_call({get_session, SessionId}, _From, State) ->
+                SessionsTableId = State,
+                Resp = case ets:lookup(SessionsTableId, SessionId) of
+                        [Session] -> {ok, Session};
+                        [] -> {error, not_found}
+                       end,
+                {reply, Resp, State};
 
 handle_call({terminate_session, SessionKey}, _From, State) ->
                 SessionsTableId = State,

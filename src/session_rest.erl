@@ -31,8 +31,9 @@
 
 -include("erlchat.hrl").
 
--define(input_not_json, <<"Input wasn't in a valid application/json format">>).
--define(input_not_session, <<"Input wasn't a valid session object">>).
+-define(input_not_json, <<"Input wasn't in a valid application/json format.">>).
+-define(input_not_session, <<"Input wasn't a valid session object.">>).
+-define(session_id_required, <<"Session id required to fullfill the request.">>).
 
 %% rest handler callbacks
 -export([init/3, allowed_methods/2, content_types_accepted/2, content_types_provided/2]).
@@ -71,8 +72,20 @@ init_session(Req, State) ->
                 end.
 
 get_session(Req, State) ->
-                Session = #erlchat_session { },
-                {session_to_json(Session), Req, State}.
+                case cowboy_req:binding(session_id, Req) of
+                  {undefined, Req1} ->
+                    error_response(bad_request, ?session_id_required, Req1, State);
+
+                  {SessionId, Req1} ->
+                    case erlchat_sessions:get_session(SessionId) of
+                      {ok, Session} ->
+                        {session_to_json(Session), Req1, State};
+
+                      {error, not_found} ->
+                        {ok, Req2} = cowboy_req:reply(404, Req1),
+                        {ok, Req2, State}
+                    end
+                end.
 
 parse_session([], Req, State) ->
                 {error, error_response(bad_request, ?input_not_json, Req, State)};

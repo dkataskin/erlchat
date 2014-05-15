@@ -46,7 +46,7 @@ start_stop_server_test_() ->
                  fun(_) -> erlchat_sessions:stop() end,
                  fun is_registered/1}.
 
-get_session_test_() ->
+get_user_session_test_() ->
                 {setup,
                   fun() ->
                     erlchat_sessions:start_link(),
@@ -57,7 +57,7 @@ get_session_test_() ->
                   fun(_) -> erlchat_sessions:stop() end,
                   fun get_session/1}.
 
-get_sessions_test_() ->
+get_users_sessions_test_() ->
                 {setup,
                   fun() ->
                     erlchat_sessions:start_link(),
@@ -87,11 +87,12 @@ is_registered(Pid) ->
                 [?_assert(erlang:is_process_alive(Pid)),
                  ?_assertEqual(Pid, whereis(?session_server))].
 
-get_session({UserId, Session}) ->
-                [?_assertMatch({ok, [Session]}, erlchat_sessions:get_sessions(UserId))].
+get_session({UserId, Session=#erlchat_session{}}) ->
+                [?_assertMatch({ok, [Session]}, erlchat_sessions:get_user_sessions(UserId)),
+                 ?_assertMatch({ok, Session}, erlchat_sessions:get_session(Session#erlchat_session.id))].
 
 get_sessions({UserId, Sessions}) when is_list(Sessions) ->
-                {ok, TestSessions} = erlchat_sessions:get_sessions(UserId),
+                {ok, TestSessions} = erlchat_sessions:get_user_sessions(UserId),
                 FoldFun = fun(Session, Asserts) ->
                             [?_assert(lists:any(fun(Elem) -> Elem =:= Session end, TestSessions)) | Asserts]
                           end,
@@ -100,7 +101,7 @@ get_sessions({UserId, Sessions}) when is_list(Sessions) ->
 
 terminate_session({UserId, #erlchat_session{ id = SessionId }}) ->
                 {ok, terminated} = erlchat_sessions:terminate_session(SessionId),
-                {ok, Sessions} = erlchat_sessions:get_sessions(UserId),
+                {ok, Sessions} = erlchat_sessions:get_user_sessions(UserId),
                 Pred = fun(#erlchat_session { id = Id }) ->
                         SessionId =/= Id
                        end,

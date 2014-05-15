@@ -37,7 +37,7 @@ start(_Type, _Args) ->
             Dispatch = cowboy_router:compile([
               {'_', [
                 {"/", toppage_handler, []},
-                {"/session/[...]", session_rest, []},
+                {"/session/[:session_id]", session_rest, []},
                 {"/bullet", bullet_handler, [{handler, stream_handler}]},
                 {"/static/[...]", cowboy_static, {priv_dir, bullet, []}}
               ]}
