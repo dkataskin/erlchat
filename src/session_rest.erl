@@ -31,12 +31,14 @@
 
 -include("erlchat.hrl").
 
+-define(session_id_param, session_id).
+
 -define(input_not_json, <<"Input wasn't in a valid application/json format.">>).
 -define(input_not_session, <<"Input wasn't a valid session object.">>).
 -define(session_id_required, <<"Session id required to fullfill the request.">>).
 
 %% rest handler callbacks
--export([init/3, allowed_methods/2, content_types_accepted/2, content_types_provided/2]).
+-export([init/3, allowed_methods/2, content_types_accepted/2, content_types_provided/2, delete_resource/2]).
 
 %% custom callbacks
 -export([init_session/2, get_session/2]).
@@ -45,13 +47,16 @@ init(_Transport, _Req, []) ->
                 {upgrade, protocol, cowboy_rest}.
 
 allowed_methods(Req, State) ->
-                {[<<"GET">>, <<"POST">>], Req, State}.
+                {[<<"GET">>, <<"POST">>, <<"DELETE">>], Req, State}.
 
 content_types_accepted(Req, State) ->
                 {[{<<"application/json">>, init_session}], Req, State}.
 
 content_types_provided(Req, State) ->
                 {[{<<"application/json">>, get_session}], Req, State}.
+
+delete_resource(Req, State) ->
+                exec_against_session(Req, State, fun delete_session/3).
 
 init_session(Req, State) ->
                 {ok, Body, Req1} = cowboy_req:body_qs(Req),
@@ -72,20 +77,21 @@ init_session(Req, State) ->
                 end.
 
 get_session(Req, State) ->
-                case cowboy_req:binding(session_id, Req) of
-                  {undefined, Req1} ->
-                    error_response(bad_request, ?session_id_required, Req1, State);
+                exec_against_session(Req, State, fun get_session/3).
 
-                  {SessionId, Req1} ->
-                    case erlchat_sessions:get_session(SessionId) of
-                      {ok, Session} ->
-                        {session_to_json(Session), Req1, State};
+get_session(SessionId, Req, State) ->
+                case erlchat_sessions:get_session(SessionId) of
+                  {ok, Session} ->
+                    {session_to_json(Session), Req, State};
 
-                      {error, not_found} ->
-                        {ok, Req2} = cowboy_req:reply(404, Req1),
-                        {ok, Req2, State}
-                    end
+                  {error, not_found} ->
+                    {ok, Req2} = cowboy_req:reply(404, [], [], Req),
+                    {ok, Req2, State}
                 end.
+
+delete_session(SessionId, Req, State) ->
+                {ok, terminated} = erlchat_sessions:terminate_session(SessionId),
+                {true, Req, State}.
 
 parse_session([], Req, State) ->
                 {error, error_response(bad_request, ?input_not_json, Req, State)};
@@ -108,6 +114,15 @@ parse_session([{Body, true}], Req, State) ->
 
 parse_session(_, Req, State) ->
                 {error, error_response(bad_request, ?input_not_json, Req, State)}.
+
+exec_against_session(Req, State, Fun) ->
+                case cowboy_req:binding(?session_id_param, Req) of
+                  {undefined, Req1} ->
+                    error_response(bad_request, ?session_id_required, Req1, State);
+
+                  {SessionId, Req1} ->
+                    Fun(SessionId, Req1, State)
+                end.
 
 session_to_json(#erlchat_session { id = SessionId, user_id = UserId }) ->
                 jsx:encode([{status, ok}, {user_id, UserId}, {session_id, SessionId}]).
