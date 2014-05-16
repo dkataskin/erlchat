@@ -34,10 +34,11 @@
 -export([start/2, stop/1]).
 
 start(_Type, _Args) ->
+            {ok, AuthToken} = application:get_env(erlchat, auth_token),
             Dispatch = cowboy_router:compile([
               {'_', [
                 {"/", toppage_handler, []},
-                {"/session/[:session_id]", session_rest, []},
+                {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
                 {"/bullet", bullet_handler, [{handler, stream_handler}]},
                 {"/static/[...]", cowboy_static, {priv_dir, bullet, []}}
               ]}

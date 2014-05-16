@@ -28,16 +28,35 @@
 
 -module(erlchat).
 
+-define(apps, [crypto, ranch, cowlib, cowboy, sync, erlchat]).
 -author("Dmitry Kataskin").
 
 -export([start/0, stop/0]).
 
 start() ->
-    ok = application:start(crypto),
-    ok = application:start(ranch),
-    ok = application:start(cowlib),
-    ok = application:start(cowboy),
-    ok = application:start(erlchat).
+    all_started = ensure_started(?apps),
+    ok.
 
 stop() ->
-    application:stop(erlchat).
+    all_stopped = ensure_stopped(?apps),
+    ok.
+
+ensure_started([]) ->
+    all_started;
+
+ensure_started([App|RestOfAppList]) ->
+    case application:start(App) of
+      ok -> started;
+      {error, {already_started, App}} -> started
+    end,
+    ensure_started(RestOfAppList).
+
+ensure_stopped([]) ->
+    all_stopped;
+
+ensure_stopped([App|RestOfAppList]) ->
+    case application:stop(App) of
+      ok -> stopped;
+      {error, {not_started, App}} -> stopped
+    end,
+    ensure_stopped(RestOfAppList).

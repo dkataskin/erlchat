@@ -31,20 +31,49 @@
 
 -include("erlchat.hrl").
 
+-record(session_rest, { auth_token = undefined }).
+
 -define(session_id_param, session_id).
 
 -define(input_not_json, <<"Input wasn't in a valid application/json format.">>).
 -define(input_not_session, <<"Input wasn't a valid session object.">>).
 -define(session_id_required, <<"Session id required to fullfill the request.">>).
+-define(www_authenticate, <<"realm=\"erlchat\"">>).
 
 %% rest handler callbacks
--export([init/3, allowed_methods/2, content_types_accepted/2, content_types_provided/2, delete_resource/2]).
+-export([init/3, allowed_methods/2, content_types_accepted/2, content_types_provided/2, delete_resource/2,
+         is_authorized/2, rest_init/2]).
 
 %% custom callbacks
 -export([init_session/2, get_session/2]).
 
-init(_Transport, _Req, []) ->
-                {upgrade, protocol, cowboy_rest}.
+init(_Transport, Req, Opts) ->
+                {upgrade, protocol, cowboy_rest, Req, Opts}.
+
+rest_init(Req, Opts) ->
+                case lists:keyfind(auth_token, 1, Opts) of
+                  false ->
+                    {ok, Req, no_state};
+                  {auth_token, AuthToken} ->
+                    {ok, Req, #session_rest { auth_token = AuthToken }}
+                end.
+
+is_authorized(Req, no_state) ->
+                {true, Req, no_state};
+
+is_authorized(Req, State=#session_rest { auth_token = AuthToken }) ->
+                {ok, AuthHeader, Req1} = cowboy_req:parse_header(<<"authorization">>, Req),
+                case AuthHeader of
+                  {Auth, <<>>} ->
+                    case Auth =:= AuthToken of
+                      true ->
+                        {true, Req1, State};
+                      false ->
+                        {{false, ?www_authenticate}, Req1, State}
+                    end;
+                  _ ->
+                    {{false, ?www_authenticate}, Req1, State}
+                end.
 
 allowed_methods(Req, State) ->
                 {[<<"GET">>, <<"POST">>, <<"DELETE">>], Req, State}.

@@ -5,4 +5,4 @@
             {registered, []},
             {applications, [kernel, stdlib, cowboy]},
             {mod, {erlchat_app, []}},
-            {env, []}]}.
+            {env, [{auth_token, <<"1949fj019f09044fk09k0dfkasdpf">>}]}]}.
