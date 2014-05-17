@@ -35,12 +35,15 @@
 
 start(_Type, _Args) ->
             {ok, AuthToken} = application:get_env(erlchat, auth_token),
+
             Dispatch = cowboy_router:compile([
               {'_', [
                 {"/", toppage_handler, []},
                 {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
                 {"/bullet", bullet_handler, [{handler, stream_handler}]},
-                {"/static/[...]", cowboy_static, {priv_dir, bullet, []}}
+                static_files("js"),
+                static_files("css"),
+                static_files("img")
               ]}
             ]),
             {ok, _} = cowboy:start_http(http, 100,
@@ -50,3 +53,9 @@ start(_Type, _Args) ->
 
 stop(_State) ->
 		        ok.
+
+static_files(FileType) ->
+            {lists:append(["/", FileType, "/[...]"]), cowboy_static, [
+              {directory, {priv_dir, erlchat, [list_to_binary(FileType)]}},
+              {mimetypes, {fun mimetypes:path_to_mimes/2, default}}
+            ]}.

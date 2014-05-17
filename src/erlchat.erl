@@ -38,7 +38,7 @@ start() ->
     ok.
 
 stop() ->
-    all_stopped = ensure_stopped(?apps),
+    all_stopped = ensure_stopped(lists:reverse(?apps)),
     ok.
 
 ensure_started([]) ->
