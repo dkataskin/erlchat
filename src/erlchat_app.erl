@@ -38,12 +38,12 @@ start(_Type, _Args) ->
 
             Dispatch = cowboy_router:compile([
               {'_', [
-                {"/", toppage_handler, []},
-                {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
-                {"/bullet", bullet_handler, [{handler, stream_handler}]},
                 static_files("js"),
                 static_files("css"),
-                static_files("img")
+                static_files("img"),
+                {"/", toppage_handler, []},
+                {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
+                {"/bullet", bullet_handler, [{handler, stream_handler}]}
               ]}
             ]),
             {ok, _} = cowboy:start_http(http, 100,
@@ -55,7 +55,10 @@ stop(_State) ->
 		        ok.
 
 static_files(FileType) ->
-            {lists:append(["/", FileType, "/[...]"]), cowboy_static, [
-              {directory, {priv_dir, erlchat, [list_to_binary(FileType)]}},
-              {mimetypes, {fun mimetypes:path_to_mimes/2, default}}
-            ]}.
+            {lists:append(["/", FileType, "/[...]"]), cowboy_static,
+            %  {priv_dir, erlchat, FileType, [{mimetypes, {fun mimetypes:path_to_mimes/2, default}}]}}.
+              {priv_dir, erlchat, FileType}}.
+            %  [
+            %  {directory, {priv_dir, erlchat, FileType}},
+            %  {mimetypes, {fun mimetypes:path_to_mimes/2, default}}
+            %]}.
