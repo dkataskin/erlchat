@@ -39,14 +39,18 @@
                        avatar = "",
                        nickname = <<"">>}).
 
+-record(erlchat_conversation, {id = <<>>,
+                               theme = <<"">>,
+                               participants = [],
+                               created_at = erlang:now()}).
+
 -record(erlchat_session, {id = <<"">>,
                           user_id = <<"">>,
                           status = offline,
                           last_seen = undefined}).
 
--record(erlchat_message, {id = <<>>,
-                          type = private,
+-record(erlchat_message, {id = <<"">>,
+                          conversation_id = <<"">>,
                           sender = <<>>,
-                          recipients = [],
                           text = <<"">>,
                           sent = erlang:now()}).
