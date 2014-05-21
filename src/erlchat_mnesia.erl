@@ -68,6 +68,11 @@ create_schema(Nodes) ->
                                                    {disc_only_copies, Nodes},
                                                    {type, set}]),
 
+                mnesia:create_table(erlchat_conversation, [{attributes, record_info(fields, erlchat_conversation)},
+                                                           {index, #erlchat_conversation.id},
+                                                           {disc_only_copies, Nodes},
+                                                            {type, set}]),
+
                 mnesia:create_table(erlchat_message, [{attributes, record_info(fields, erlchat_message)},
                                                       {index, #erlchat_message.id},
                                                       {disc_only_copies, Nodes},
