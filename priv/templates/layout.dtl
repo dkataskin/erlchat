@@ -35,7 +35,7 @@
         </p>
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-        <script src="/js/bullet.js"></script>
+        <script src="/js/erlchat.js"></script>
         <script type="text/javascript">
             $(document).ready(function(){
                 var start = function(name, options) {
