@@ -40,7 +40,7 @@
                        nickname = <<"">>}).
 
 -record(erlchat_conversation, {id = <<>>,
-                               theme = <<"">>,
+                               subject = <<"">>,
                                participants = [],
                                created_at = erlang:now()}).
 
