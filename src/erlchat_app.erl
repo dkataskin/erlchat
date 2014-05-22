@@ -56,9 +56,7 @@ stop(_State) ->
 
 static_files(FileType) ->
             {lists:append(["/", FileType, "/[...]"]), cowboy_static,
-            %  {priv_dir, erlchat, FileType, [{mimetypes, {fun mimetypes:path_to_mimes/2, default}}]}}.
-              {priv_dir, erlchat, FileType}}.
-            %  [
-            %  {directory, {priv_dir, erlchat, FileType}},
-            %  {mimetypes, {fun mimetypes:path_to_mimes/2, default}}
-            %]}.
+              {dir, static_content_dir(FileType), [{mimetypes, cow_mimetypes, web}]}}.
+
+static_content_dir(FileType) ->
+            erlchat_utils:priv_dir() ++ "/" ++ FileType.

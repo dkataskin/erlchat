@@ -63,20 +63,20 @@ code_change(_OldVsn, State, _Extra) ->
 
 % Schema
 create_schema(Nodes) ->
-                mnesia:create_table(erlchat_user, [{attributes, record_info(fields, erlchat_user)},
-                                                   {index, #erlchat_user.id},
-                                                   {disc_only_copies, Nodes},
-                                                   {type, set}]),
+                {atomic, ok} = mnesia:create_table(erlchat_user, [{attributes, record_info(fields, erlchat_user)},
+                                                                  {index, #erlchat_user.id},
+                                                                  {disc_only_copies, Nodes},
+                                                                  {type, set}]),
 
-                mnesia:create_table(erlchat_conversation, [{attributes, record_info(fields, erlchat_conversation)},
-                                                           {index, #erlchat_conversation.id},
-                                                           {disc_only_copies, Nodes},
-                                                            {type, set}]),
+                {atomic, ok} = mnesia:create_table(erlchat_conversation, [{attributes, record_info(fields, erlchat_conversation)},
+                                                                          {index, #erlchat_conversation.id},
+                                                                          {disc_only_copies, Nodes},
+                                                                          {type, set}]),
 
-                mnesia:create_table(erlchat_message, [{attributes, record_info(fields, erlchat_message)},
-                                                      {index, #erlchat_message.id},
-                                                      {disc_only_copies, Nodes},
-                                                      {type, set}]),
+                {atomic, ok} = mnesia:create_table(erlchat_message, [{attributes, record_info(fields, erlchat_message)},
+                                                                     {index, #erlchat_message.id},
+                                                                     {disc_only_copies, Nodes},
+                                                                     {type, set}]),
                 ok.
 
 

@@ -30,9 +30,13 @@
 -author("Dmitry Kataskin").
 
 %% API
--export([get_unique_id/0]).
+-export([get_unique_id/0, priv_dir/0]).
 
 get_unique_id() ->
                 {M, S, U} = erlang:now(),
                 <<N:64>> = <<M:24, S:20, U:20>>,
                 N.
+
+priv_dir() ->
+        Ebin = filename:dirname(code:which(erlchat)),
+        filename:join(filename:dirname(Ebin), "priv").
