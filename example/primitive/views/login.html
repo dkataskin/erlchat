@@ -4,10 +4,10 @@
 
 <script type="text/javascript">
 
-    var loginForm = [{ view:"text", label:"Nickname"},
-					 { view:"text", type:"password", label:"Password"},
+    var loginForm = [{ view:"text", label:"Nickname", name:"nickname" },
+					 { view:"text", type:"password", label:"Password", name:"password" },
                      { margin:5, cols:[
-                         { view:"button", label:"Login", type:"form" },
+                         { view:"button", label:"Login", type:"form", click:"loginClick" },
                          { view:"button", label:"Cancel" }
                      ]}];
 
@@ -18,7 +18,11 @@
         ]
     });
 
-    function onLoginClick(){
+    var loginClick = function (){
+        var loginData = { nickname: loginForm[0].nickname, password: loginForm[1].password };
 
-    };
+        $.post("/login", loginData, function(data){
+                window.location.replace("/chat");
+              });
+        };
 </script>
