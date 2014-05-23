@@ -1,28 +1,5 @@
-@{meta('Erlchat primitive example', 'Description', 'Erlchat, example')}
+@{meta('Erlchat usage sample', 'Description', 'Erlchat, example')}
+
+@{js('login.js')}
 
 <div id="login_div"></div>
-
-<script type="text/javascript">
-
-    var loginForm = [{ view:"text", label:"Nickname", name:"nickname" },
-					 { view:"text", type:"password", label:"Password", name:"password" },
-                     { margin:5, cols:[
-                         { view:"button", label:"Login", type:"form", click:"loginClick" },
-                         { view:"button", label:"Cancel" }
-                     ]}];
-
-    webix.ui({
-        rows:[
-            {type: "header", template: "erlchat octahedron"},
-            {container:"login_div",	view:"form", scroll:false, width:300, elements: loginForm}
-        ]
-    });
-
-    var loginClick = function (){
-        var loginData = { nickname: loginForm[0].nickname, password: loginForm[1].password };
-
-        $.post("/login", loginData, function(data){
-                window.location.replace("/chat");
-              });
-        };
-</script>

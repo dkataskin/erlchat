@@ -1,9 +1,9 @@
 exports.install = function(framework) {
 
     framework.onAuthorization = function(req, res, flags, next) {
-        var userId = req.cookie('user').parseInt();
+        var userId = req.cookie('user');
 
-        if (userId === 0) {
+        if (!userId || userId.length == 0) {
             // unlogged user
             next(false);
             return;
@@ -12,13 +12,14 @@ exports.install = function(framework) {
         next(true, {});
     };
 
-    framework.route('/', redirect_login);
+    framework.route('/', redirect_login, ['unauthorize']);
     framework.route('/', redirect_chat, ['authorize']);
 
-    framework.route('/login', view_login);
+    framework.route('/login', redirect_chat, ['authorize']);
+    framework.route('/login', view_login, ['unauthorize']);
     framework.route('/login', post_login, ['post', 'xhr']);
 
-    framework.route('/chat', redirect_login);
+    framework.route('/chat', redirect_login, ['unauthorize']);
     framework.route('/chat', view_chat, ['authorize']);
 };
  
@@ -37,7 +38,12 @@ function view_chat() {
 function post_login() {
     var self = this;
 
-    self.redirect('/chat');
+    var data = self.req.data.post;
+    if (data && data.nickname && data.password){
+        self.res.cookie('user', data.nickname)
+        redirect_chat();
+    }
+    self.json({ error: "invalid credentials" });
 }
 
 function redirect_login(){
@@ -49,5 +55,5 @@ function redirect_login(){
 function redirect_chat(){
     var self = this;
 
-    self.redirect('/login');
+    self.redirect('/chat');
 };
