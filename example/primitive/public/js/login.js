@@ -7,9 +7,15 @@
                      ]}];
 
     webix.ui({
+        type:"clean",
         rows:[
-            {type: "header", template: "erlchat sample"},
-            {container:"login_div",	view:"form", scroll:false, width:300, elements: loginForm, id:"login_form"}
+            getViewHeader(),
+            { type:"clean", height:100 },
+            { cols:[
+                { type:"clean" },
+                { view:"form", container:"login_form", width:300, elements:loginForm, id:"login_form" },
+                { type:"clean" }
+            ]}
         ]
     });
 
