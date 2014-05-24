@@ -2,8 +2,9 @@
     webix.ui({
         rows:[
             getViewHeader(),
+            { type:"clean", height:50 },
             { cols:[
-                 { template:"left col" },
+                 { type:"clean" },
                  { width:600, rows:[
                        { view:"layout", container:"scroll", type:"line",
                            rows:[
@@ -24,7 +25,7 @@
                            ]
                        }]
                  },
-                 { template: "right col" }
+                 { type:"clean" }
              ]}
         ]
     });
