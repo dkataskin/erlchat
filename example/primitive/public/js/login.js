@@ -22,6 +22,8 @@
     loginClick = function (){
         console.log($$("login_form").getValues());
 
-        $.post("/login", $$("login_form").getValues());
+        $.post("/login", $$("login_form").getValues(), function(data){
+                window.location.replace('/chat');
+            });
         };
 })();

@@ -21,7 +21,7 @@
                                            { id:"verse_4", template:"html->my_box4", autoheight:true }
                                        ]
                                    } //end of scrollview body
-                               },
+                               }
                            ]
                        }]
                  },
