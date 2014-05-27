@@ -1,4 +1,4 @@
 erlchat
 =======
 
-Erlchat is a simple chat server built using the Cowboy web framework.
+Private message service for web applications.

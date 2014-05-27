@@ -2,23 +2,21 @@
     webix.ui({
         rows:[
             getViewHeader(),
-            { type:"clean", height:50 },
             { cols:[
                  { type:"clean" },
-                 { width:600, rows:[
-                       { view:"layout", container:"scroll", type:"line",
-                           rows:[
-                               { template:"<span style='font-size:16px; text-align:center; font-weight:bold'>John Keats\' Verses</span>", type:"header"},
-                               { view:"scrollview", id:"verses", height:300, scroll:"y",
+                 { width:300, type:"clean", rows:[
+                    { view:"template", height:50 },
+                    { view:"template" }
+                 ]},
+                 { width:700, rows:[
+                       { view:"layout", type:"line", rows:[
+                               { template:"<span style='font-size:16px; text-align:center; font-weight:bold'>John Keats\' Verses</span>", height:50},
+                               { view:"scrollview", id:"verses", scroll:"y",
                                    body:{
                                        rows:[
-                                           { id:"verse_1", template:"html->my_box1", autoheight:true },
-                                           { template:"<i>Scroll down for the next verse</i>", height:30 },
-                                           { id:"verse_2", template:"html->my_box2", autoheight:true },
-                                           { template:"<i>Scroll down for the next verse</i>", height:30 },
-                                           { id:"verse_3", template:"html->my_box3", autoheight:true },
-                                           { template:"<i>Scroll down for the next verse</i>", height:30 },
-                                           { id:"verse_4", template:"html->my_box4", autoheight:true }
+                                           { template:"<i>Scroll down for the next verse</i>", height:30, type:"clean" },
+                                           { template:"<i>Scroll down for the next verse</i>", height:30, type:"clean" },
+                                           { template:"<i>Scroll down for the next verse</i>", height:30, type:"clean" },
                                        ]
                                    } //end of scrollview body
                                }
@@ -26,7 +24,8 @@
                        }]
                  },
                  { type:"clean" }
-             ]}
+            ]},
+            { type:"clean", height:50 }
         ]
     });
 })();
