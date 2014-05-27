@@ -1,11 +1,14 @@
 (function(){
-    webix.ui({
+    webix.ui({ type:"clean",
         rows:[
             getViewHeader(),
-            { cols:[
+            { type:"space", margin:1, padding:1, cols:[
                  { type:"clean" },
                  { width:300, type:"clean", rows:[
-                    { view:"template", type:"line", height:50 },
+                    { type:"clean", height:40, cols:[
+                        { view:"search", placeholder:"Search..." },
+                        { view:"button", id:"chat_menu_btn", type:"icon", icon:"mail", width:50, onContext:{} }
+                    ]},
                     { view:"template", type:"line" }
                  ]},
                  { width:700, rows:[
@@ -36,4 +39,12 @@
             { type:"clean", height:50 }
         ]
     });
+
+    webix.ui({
+        view:"contextmenu",
+        id:"chat_contextmenu",
+        data: [{ value:"New dialog" }]
+    });
+
+    $$('chat_contextmenu').attachTo($$('chat_menu_btn').$view);
 })();
