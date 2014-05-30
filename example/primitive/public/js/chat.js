@@ -9,16 +9,16 @@
                         { view:"search", placeholder:"Search..." },
                         { view:"button", id:"chat_menu_btn", type:"icon", icon:"mail", width:50, onContext:{} }
                     ]},
-                    { view:"template", type:"line" }
+                    { view:"list", type:"line" }
                  ]},
                  { width:700, rows:[
                        { view:"template", type:"line", height:50 },
-                       { view:"scrollview", scroll:"y",
+                       { view:"scrollview", scroll:"y", type:"clean",
                               body:{
                                   rows:[
                                       { template:"<i>Scroll down for the next verse</i>", height:30, type:"clean" },
                                       { template:"<i>Scroll down for the next verse</i>", height:30, type:"clean" },
-                                      { template:"<i>Scroll down for the next verse</i>", height:30, type:"clean" },
+                                      { template:"<i>Scroll down for the next verse</i>", height:30, type:"clean" }
                                   ]
                               } //end of scrollview body
                           },
@@ -47,4 +47,18 @@
     });
 
     $$('chat_contextmenu').attachTo($$('chat_menu_btn').$view);
+    $$("chat_contextmenu").attachEvent("onItemClick", function(id){
+        webix.ui({ view:"window",
+                   height:300,
+                   width:400,
+                   left:500, top:200,
+                   move:true,
+                   head:"Start a new conversation",
+                   body:{ view:"form", id:"new_dialog_form", labelAlign:"top", elements:[
+                    { view:"text", label:"Recipient" },
+                    { view:"textarea", label:"Message", placeholder:"Write a message..." },
+                    { view:"button", value:"Send", type:"form", inputWidth:140 }
+                   ]}
+                }).show();
+    });
 })();
