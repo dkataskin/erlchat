@@ -56,8 +56,8 @@
                    move:true,
                    head:"Start a new conversation",
                    body:{ view:"form", id:"new_dialog_form", labelAlign:"top", elements:[
-                            { view:"text", label:"Recipient", required:true },
-                            { view:"textarea", label:"Message", placeholder:"Write a message...", required:true },
+                            { view:"text", name:"recipient", label:"Recipient", required:true },
+                            { view:"textarea", name:"messageText", label:"Message", placeholder:"Write a message...", required:true },
                             { view:"button", value:"Send", type:"form", inputWidth:140, click:"submitNewMessage" }
                    ]}
                 }).show();
