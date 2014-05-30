@@ -7,7 +7,15 @@
                  { width:300, type:"clean", rows:[
                     { type:"clean", height:40, cols:[
                         { view:"search", placeholder:"Search..." },
-                        { view:"button", id:"chat_menu_btn", type:"icon", icon:"mail", width:50, onContext:{} }
+                        { view:"menu",
+                          id:"chat_menu",
+                          container:"chat_menu_cntr",
+                          width:50,
+                          layout:"y",
+                          openAction:"click",
+                          data: [
+                               { id:1, value:"M", submenu:[ "New conversation" ] }
+                          ]}
                     ]},
                     { view:"list", type:"line" }
                  ]},
@@ -40,31 +48,27 @@
         ]
     });
 
-    webix.ui({
-        view:"contextmenu",
-        id:"chat_contextmenu",
-        data: [{ value:"New dialog" }]
-    });
-
-    $$('chat_contextmenu').attachTo($$('chat_menu_btn').$view);
-    $$("chat_contextmenu").attachEvent("onItemClick", function(id){
-        webix.ui({ view:"window",
-                   id:"new_dialog_window",
-                   height:300,
-                   width:400,
-                   left:500,
-                   top:200,
-                   move:true,
-                   head:"Start a new conversation",
-                   body:{ view:"form", id:"new_dialog_form", labelAlign:"top", elements:[
-                            { view:"text", name:"recipient", label:"Recipient", required:true },
-                            { view:"textarea", name:"messageText", label:"Message", placeholder:"Write a message...", required:true },
-                            { type:"clear", margin:10, cols:[
-                                { view:"button", value:"Send", type:"form", click:"submitNewMessage" },
-                                { view:"button", value:"Cancel", click:"$$('new_dialog_window').close();" }
-                            ]}
-                   ]}
-                }).show();
+    $$("chat_menu").attachEvent("onMenuItemClick", function(id){
+        if (this.getMenuItem(id).value == "New conversation"){
+            webix.message(this.getMenuItem(id).value);
+            webix.ui({ view:"window",
+                       id:"new_dialog_window",
+                       height:300,
+                       width:400,
+                       left:500,
+                       top:200,
+                       move:true,
+                       head:"Start a new conversation",
+                       body:{ view:"form", id:"new_dialog_form", labelAlign:"top", elements:[
+                                { view:"text", name:"recipient", label:"Recipient", required:true },
+                                { view:"textarea", name:"messageText", label:"Message", placeholder:"Write a message...", required:true },
+                                { type:"clear", margin:10, cols:[
+                                    { view:"button", value:"Send", type:"form", click:"submitNewMessage" },
+                                    { view:"button", value:"Cancel", click:"$$('new_dialog_window').close();" }
+                                ]}
+                       ]}
+                    }).show();
+        };
     });
 
     submitNewMessage = function(){
