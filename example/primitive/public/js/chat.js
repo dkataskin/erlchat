@@ -51,14 +51,20 @@
         webix.ui({ view:"window",
                    height:300,
                    width:400,
-                   left:500, top:200,
+                   left:500,
+                   top:200,
                    move:true,
                    head:"Start a new conversation",
                    body:{ view:"form", id:"new_dialog_form", labelAlign:"top", elements:[
-                    { view:"text", label:"Recipient" },
-                    { view:"textarea", label:"Message", placeholder:"Write a message..." },
-                    { view:"button", value:"Send", type:"form", inputWidth:140 }
+                            { view:"text", label:"Recipient", required:true },
+                            { view:"textarea", label:"Message", placeholder:"Write a message...", required:true },
+                            { view:"button", value:"Send", type:"form", inputWidth:140, click:"submitNewMessage" }
                    ]}
                 }).show();
     });
+
+    submitNewMessage = function(){
+        if (this.getParentView().validate()){
+        };
+    };
 })();
