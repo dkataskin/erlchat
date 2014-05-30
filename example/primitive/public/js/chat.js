@@ -49,6 +49,7 @@
     $$('chat_contextmenu').attachTo($$('chat_menu_btn').$view);
     $$("chat_contextmenu").attachEvent("onItemClick", function(id){
         webix.ui({ view:"window",
+                   id:"new_dialog_window",
                    height:300,
                    width:400,
                    left:500,
@@ -60,7 +61,7 @@
                             { view:"textarea", name:"messageText", label:"Message", placeholder:"Write a message...", required:true },
                             { type:"clear", margin:10, cols:[
                                 { view:"button", value:"Send", type:"form", click:"submitNewMessage" },
-                                { view:"button", value:"Cancel" }
+                                { view:"button", value:"Cancel", click:"$$('new_dialog_window').close();" }
                             ]}
                    ]}
                 }).show();
