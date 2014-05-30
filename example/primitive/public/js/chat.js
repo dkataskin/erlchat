@@ -58,7 +58,10 @@
                    body:{ view:"form", id:"new_dialog_form", labelAlign:"top", elements:[
                             { view:"text", name:"recipient", label:"Recipient", required:true },
                             { view:"textarea", name:"messageText", label:"Message", placeholder:"Write a message...", required:true },
-                            { view:"button", value:"Send", type:"form", inputWidth:140, click:"submitNewMessage" }
+                            { type:"clear", margin:10, cols:[
+                                { view:"button", value:"Send", type:"form", click:"submitNewMessage" },
+                                { view:"button", value:"Cancel" }
+                            ]}
                    ]}
                 }).show();
     });
