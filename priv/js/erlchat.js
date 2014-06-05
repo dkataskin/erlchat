@@ -312,7 +312,6 @@
 	return stream;
 }})})(jQuery);
 
-
 /*
      Copyright (c) 2014, Dmitry Kataskin
      All rights reserved.
@@ -342,9 +341,56 @@
      OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
      OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-(function (){
-    if (!window.erlchat){
-        window.erlchat = {};
-    }
-})();
 
+//
+// session =
+//           {
+//              id:"MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
+//              user: {
+//                  id: 23434,
+//                  name: "Dmitry Kataskin",
+//                  nick: "kotoff"
+//              }
+//           }
+//
+// address ws://localhost:8085/erlchat
+(function ($){$.extend({erlchat: function(session, address){
+    var stream = new function(){
+        var self = this;
+
+        self.session = session;
+        self.address = address;
+
+        self.onopen = function(){};
+        self.onclose = function(){};
+        self.onheartbeat = function(){};
+
+        var bullet = $.bullet(address, {});
+        bullet.onopen = function(){
+            self.onopen();
+        };
+
+        bullet.onclose = bullet.ondisconnect = function(){
+            self.onclose();
+        };
+
+        bullet.onmessage = function(e){
+            console.log("message");
+        };
+
+        bullet.onheartbeat = function(){
+                                console.log('ping');
+                                bullet.send('ping: ' + session.id);
+
+                                self.onheartbeat();
+                              };
+
+        self.sendMessage = function(conversationId, text) {
+            bullet.send({ sessionId: self.session.id,
+                          conversationId: conversationId,
+                          text: text });
+        };
+    };
+
+    return stream;
+}})})(jQuery);
