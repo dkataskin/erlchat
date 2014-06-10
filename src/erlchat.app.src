@@ -1,6 +1,6 @@
 {application, erlchat,
-          [{description, "A chat server in Erlang"},
-            {vsn, "1"},
+          [{description, "Private message system for web apps in Erlang."},
+            {vsn, "0.1"},
             {modules, []},
             {registered, []},
             {applications, [kernel, stdlib, cowboy]},

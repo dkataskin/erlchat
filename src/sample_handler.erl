@@ -26,45 +26,20 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(stream_handler).
+-module(sample_handler).
 -author("Dmitry Kataskin").
 
--export([init/4]).
--export([stream/3]).
--export([info/3]).
--export([terminate/2]).
+-export([init/3]).
+-export([handle/2]).
+-export([terminate/3]).
 
--define(PERIOD, 1000).
+init(_Transport, Req, []) ->
+                {ok, Req, undefined}.
 
-init(_Transport, Req, _Opts, _Active) ->
-            io:format("bullet init~n"),
-            TRef = erlang:send_after(?PERIOD, self(), refresh),
-            {ok, Req, TRef}.
+handle(Req, State) ->
+                {ok, HTML} = sample_dtl:render([]),
+                {ok, Req1} = cowboy_req:reply(200, [], HTML, Req),
+                {ok, Req1, State}.
 
-stream(<<"ping: ", Name/binary>>, Req, State) ->
-            io:format("ping ~p received~n", [Name]),
-            {reply, <<"pong">>, Req, State};
-
-stream(Data, Req, State) ->
-            io:format("stream received ~s~n", [Data]),
-            case jsx:is_json(Data) of
-              true ->
-                {ok, Req, State};
-              false ->
-                {ok, Req, State}
-            end.
-
-info(refresh, Req, _) ->
-            TRef = erlang:send_after(?PERIOD, self(), refresh),
-            DateTime = cowboy_clock:rfc1123(),
-            io:format("clock refresh timeout: ~s~n", [DateTime]),
-            {reply, DateTime, Req, TRef};
-
-info(Info, Req, State) ->
-            io:format("info received ~p~n", [Info]),
-            {ok, Req, State}.
-
-terminate(_Req, TRef) ->
-            io:format("bullet terminate~n"),
-            erlang:cancel_timer(TRef),
-            ok.
+terminate(_Reason, _Req, _State) ->
+                ok.

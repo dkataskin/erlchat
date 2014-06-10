@@ -42,21 +42,21 @@ stop() ->
     ok.
 
 ensure_started([]) ->
-    all_started;
+                all_started;
 
 ensure_started([App|RestOfAppList]) ->
-    case application:start(App) of
-      ok -> started;
-      {error, {already_started, App}} -> started
-    end,
-    ensure_started(RestOfAppList).
+                case application:start(App) of
+                  ok -> started;
+                  {error, {already_started, App}} -> started
+                end,
+                ensure_started(RestOfAppList).
 
 ensure_stopped([]) ->
-    all_stopped;
+                all_stopped;
 
 ensure_stopped([App|RestOfAppList]) ->
-    case application:stop(App) of
-      ok -> stopped;
-      {error, {not_started, App}} -> stopped
-    end,
-    ensure_stopped(RestOfAppList).
+                case application:stop(App) of
+                  ok -> stopped;
+                  {error, {not_started, App}} -> stopped
+                end,
+                ensure_stopped(RestOfAppList).
