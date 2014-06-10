@@ -47,7 +47,7 @@ start(_Type, _Args) ->
                 {"/", toppage_handler, []},
                 {"/sample", sample_handler, []},
                 {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
-                {"/erlchat", bullet_handler, [{handler, stream_handler}]}
+                {"/erlchat", bullet_handler, [{handler, erlchat_handler}]}
               ]}
             ]),
             {ok, _} = cowboy:start_http(http, 100,

@@ -26,7 +26,7 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(stream_handler).
+-module(erlchat_handler).
 -author("Dmitry Kataskin").
 
 -export([init/4]).
@@ -37,9 +37,8 @@
 -define(PERIOD, 1000).
 
 init(_Transport, Req, _Opts, _Active) ->
-            io:format("bullet init~n"),
-            TRef = erlang:send_after(?PERIOD, self(), refresh),
-            {ok, Req, TRef}.
+            io:format("erlchat handler init~n"),
+            {ok, Req, undefined}.
 
 stream(<<"ping: ", Name/binary>>, Req, State) ->
             io:format("ping ~p received~n", [Name]),
@@ -53,12 +52,6 @@ stream(Data, Req, State) ->
               false ->
                 {ok, Req, State}
             end.
-
-info(refresh, Req, _) ->
-            TRef = erlang:send_after(?PERIOD, self(), refresh),
-            DateTime = cowboy_clock:rfc1123(),
-            io:format("clock refresh timeout: ~s~n", [DateTime]),
-            {reply, DateTime, Req, TRef};
 
 info(Info, Req, State) ->
             io:format("info received ~p~n", [Info]),

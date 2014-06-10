@@ -7,9 +7,23 @@
         <link rel="stylesheet" type="text/css" href="/css/erlchat.css" />
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-        <script src="/js/erlchat.js">
+        <script src="/js/erlchat.js"></script>
     </head>
 
     <body>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                var session = {
+                  id:"MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
+                  user: {
+                    id: 23434,
+                    name: "Ivan Slizka",
+                    nick: "islizka"
+                  }
+                }
+
+                window.erlchat = $.erlchat(session, 'ws://localhost:8085/erlchat');
+            });
+        </script>
     </body>
 </html>
