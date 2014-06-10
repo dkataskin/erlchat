@@ -7,12 +7,14 @@
         <link rel="stylesheet" type="text/css" href="/css/erlchat.css" />
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script src="/js/jquery.json.js"></script>
         <script src="/js/erlchat.js"></script>
     </head>
 
     <body>
         <script type="text/javascript">
             $(document).ready(function(){
+
                 var session = {
                   id:"MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
                   user: {
@@ -30,9 +32,29 @@
                 erlchat.onclose = function(){
                     $("#status").text("status: disconnected");
                 };
+
+                $("#messageInput").bind("keypress", {}, function(e) {
+                    var code = (e.keyCode ? e.keyCode : e.which);
+                    if (code == 13) {
+                        e.preventDefault();
+                        var message = $("#messageInput").val();
+                        if (message){
+                            erlchat.send("1", message);
+                        }
+                    }
+                });
+
             });
         </script>
 
         <div id="status">status: undefined</div>
+        <div id="messages_container"></div>
+        <div>
+            <div style="float:left;">username: </div>
+            <input type="text" style="float:left; width:40px;"></div>
+            <div style="float:left;">message: </div>
+            <input id="messageInput" type="text" style="float:left;"></div>
+            <input type="button" value="Send">
+        </div>
     </body>
 </html>

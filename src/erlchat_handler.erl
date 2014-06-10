@@ -34,22 +34,21 @@
 -export([info/3]).
 -export([terminate/2]).
 
--define(PERIOD, 1000).
-
 init(_Transport, Req, _Opts, _Active) ->
             io:format("erlchat handler init~n"),
-            {ok, Req, undefined}.
+            {ok, Req, undefined_state}.
 
 stream(<<"ping: ", Name/binary>>, Req, State) ->
             io:format("ping ~p received~n", [Name]),
             {reply, <<"pong">>, Req, State};
 
 stream(Data, Req, State) ->
-            io:format("stream received ~s~n", [Data]),
             case jsx:is_json(Data) of
               true ->
+                io:format("stream received valid json ~s~n", [Data]),
                 {ok, Req, State};
               false ->
+                io:format("stream received something ~s~n", [Data]),
                 {ok, Req, State}
             end.
 

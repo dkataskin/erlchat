@@ -343,14 +343,12 @@
 */
 
 //
-// session =
-//           {
-//              id:"MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
-//              user: {
-//                  id: 23434,
-//                  name: "Dmitry Kataskin",
-//                  nick: "kotoff"
-//              }
+// session = { id:"MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
+//             user: {
+//                id: 23434,
+//                name: "Dmitry Kataskin",
+//                nick: "kotoff"
+//             }
 //           }
 //
 // address ws://localhost:8085/erlchat
@@ -383,12 +381,14 @@
                                 bullet.send('ping: ' + session.id);
 
                                 self.onheartbeat();
-                              };
+        };
 
-        self.sendMessage = function(conversationId, text) {
-            bullet.send({ sessionId: self.session.id,
-                          conversationId: conversationId,
-                          text: text });
+        self.send = function(conversationId, text) {
+            if (text && self.session && conversationId){
+                bullet.send($.toJSON({ sessionId: self.session.id,
+                                       conversationId: conversationId,
+                                       text: text }));
+            }
         };
     };
 
