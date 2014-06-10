@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Bullet Clock</title>
+        <title>Erlchat sample</title>
 
         <link rel="stylesheet" type="text/css" href="/css/erlchat.css" />
 
@@ -22,8 +22,17 @@
                   }
                 }
 
-                window.erlchat = $.erlchat(session, 'ws://localhost:8085/erlchat');
+                var erlchat = window.erlchat = $.erlchat(session, 'ws://localhost:8085/erlchat');
+                erlchat.onopen = function(){
+                    $("#status").text("status: connected");
+                };
+
+                erlchat.onclose = function(){
+                    $("#status").text("status: disconnected");
+                };
             });
         </script>
+
+        <div id="status">status: undefined</div>
     </body>
 </html>
