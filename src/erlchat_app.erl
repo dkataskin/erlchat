@@ -34,7 +34,10 @@
 -export([start/2, stop/1]).
 
 start(_Type, _Args) ->
-            {ok, AuthToken} = application:get_env(erlchat, auth_token),
+            AuthToken = case application:get_env(erlchat, auth_token) of
+                          {ok, Token} -> Token;
+                          undefined -> undefined
+                        end,
 
             Dispatch = cowboy_router:compile([
               {'_', [
