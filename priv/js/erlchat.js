@@ -383,10 +383,12 @@
                                 self.onheartbeat();
         };
 
-        self.send = function(conversationId, text) {
-            if (text && self.session && conversationId){
+
+
+        self.send = function(userId, text) {
+            if (text && self.session && userId){
                 bullet.send($.toJSON({ sessionId: self.session.id,
-                                       conversationId: conversationId,
+                                       userId: userId,
                                        text: text }));
             }
         };
