@@ -38,71 +38,71 @@
 -export([]).
 
 start_stop_server_test_() ->
-                {setup,
-                 fun() ->
-                   {ok, Pid} = erlchat_sessions:start_link(),
-                   Pid
-                 end,
-                 fun(_) -> erlchat_sessions:stop() end,
-                 fun is_registered/1}.
+        {setup,
+         fun() ->
+           {ok, Pid} = erlchat_sessions:start_link(),
+           Pid
+         end,
+         fun(_) -> erlchat_sessions:stop() end,
+         fun is_registered/1}.
 
 get_user_session_test_() ->
-                {setup,
-                  fun() ->
-                    erlchat_sessions:start_link(),
-                    UserId = <<"user1">>,
-                    {initiated, Session} = erlchat_sessions:init_session(UserId, <<"session1">>),
-                    {UserId, Session}
-                  end,
-                  fun(_) -> erlchat_sessions:stop() end,
-                  fun get_session/1}.
+        {setup,
+          fun() ->
+            erlchat_sessions:start_link(),
+            UserId = <<"user1">>,
+            {initiated, Session} = erlchat_sessions:init_session(UserId),
+            {UserId, Session}
+          end,
+          fun(_) -> erlchat_sessions:stop() end,
+          fun get_session/1}.
 
 get_users_sessions_test_() ->
-                {setup,
-                  fun() ->
-                    erlchat_sessions:start_link(),
-                    UserId = <<"user1">>,
-                    {initiated, S1} = erlchat_sessions:init_session(UserId, <<"session1">>),
-                    {initiated, S2} = erlchat_sessions:init_session(UserId, <<"session2">>),
-                    {initiated, S3} = erlchat_sessions:init_session(UserId, <<"session3">>),
-                    {UserId, [S1, S2, S3]}
-                  end,
-                  fun(_) -> erlchat_sessions:stop() end,
-                  fun get_sessions/1}.
+        {setup,
+          fun() ->
+            erlchat_sessions:start_link(),
+            UserId = <<"user1">>,
+            {initiated, S1} = erlchat_sessions:init_session(UserId),
+            {initiated, S2} = erlchat_sessions:init_session(UserId),
+            {initiated, S3} = erlchat_sessions:init_session(UserId),
+            {UserId, [S1, S2, S3]}
+          end,
+          fun(_) -> erlchat_sessions:stop() end,
+          fun get_sessions/1}.
 
 terminate_session_test_() ->
-                {setup,
-                  fun() ->
-                    erlchat_sessions:start_link(),
-                    UserId = <<"user1">>,
-                    {initiated, Session} = erlchat_sessions:init_session(UserId, <<"session1">>),
-                    {initiated, _} = erlchat_sessions:init_session(UserId, <<"session2">>),
-                    {initiated, _} = erlchat_sessions:init_session(UserId, <<"session3">>),
-                    {UserId, Session}
-                  end,
-                  fun(_) -> erlchat_sessions:stop() end,
-                  fun terminate_session/1}.
+        {setup,
+          fun() ->
+            erlchat_sessions:start_link(),
+            UserId = <<"user1">>,
+            {initiated, Session} = erlchat_sessions:init_session(UserId),
+            {initiated, _} = erlchat_sessions:init_session(UserId),
+            {initiated, _} = erlchat_sessions:init_session(UserId),
+            {UserId, Session}
+          end,
+          fun(_) -> erlchat_sessions:stop() end,
+          fun terminate_session/1}.
 
 is_registered(Pid) ->
-                [?_assert(erlang:is_process_alive(Pid)),
-                 ?_assertEqual(Pid, whereis(?session_server))].
+        [?_assert(erlang:is_process_alive(Pid)),
+         ?_assertEqual(Pid, whereis(?session_server))].
 
 get_session({UserId, Session=#erlchat_session{}}) ->
-                [?_assertMatch({ok, [Session]}, erlchat_sessions:get_user_sessions(UserId)),
-                 ?_assertMatch({ok, Session}, erlchat_sessions:get_session(Session#erlchat_session.id))].
+        [?_assertMatch({ok, [Session]}, erlchat_sessions:get_user_sessions(UserId)),
+         ?_assertMatch({ok, Session}, erlchat_sessions:get_session(Session#erlchat_session.id))].
 
 get_sessions({UserId, Sessions}) when is_list(Sessions) ->
-                {ok, TestSessions} = erlchat_sessions:get_user_sessions(UserId),
-                FoldFun = fun(Session, Asserts) ->
-                            [?_assert(lists:any(fun(Elem) -> Elem =:= Session end, TestSessions)) | Asserts]
-                          end,
-                Asserts = lists:foldl(FoldFun, [], Sessions),
-                [?_assertEqual(lists:flatlength(Sessions), lists:flatlength(TestSessions)) | Asserts].
+        {ok, TestSessions} = erlchat_sessions:get_user_sessions(UserId),
+        FoldFun = fun(Session, Asserts) ->
+                    [?_assert(lists:any(fun(Elem) -> Elem =:= Session end, TestSessions)) | Asserts]
+                  end,
+        Asserts = lists:foldl(FoldFun, [], Sessions),
+        [?_assertEqual(lists:flatlength(Sessions), lists:flatlength(TestSessions)) | Asserts].
 
 terminate_session({UserId, #erlchat_session{ id = SessionId }}) ->
-                {ok, terminated} = erlchat_sessions:terminate_session(SessionId),
-                {ok, Sessions} = erlchat_sessions:get_user_sessions(UserId),
-                Pred = fun(#erlchat_session { id = Id }) ->
-                        SessionId =/= Id
-                       end,
-                [?_assert(lists:all(Pred, Sessions))].
+        {ok, terminated} = erlchat_sessions:terminate_session(SessionId),
+        {ok, Sessions} = erlchat_sessions:get_user_sessions(UserId),
+        Pred = fun(#erlchat_session { id = Id }) ->
+                SessionId =/= Id
+               end,
+        [?_assert(lists:all(Pred, Sessions))].

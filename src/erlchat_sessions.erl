@@ -37,7 +37,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, stop/0, init_session/2, terminate_session/1, get_user_sessions/1, get_session/1]).
+-export([start_link/0, stop/0, init_session/1, terminate_session/1, get_user_sessions/1, get_session/1]).
 
 %% gen server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -49,17 +49,17 @@ start_link() ->
 stop() ->
         gen_server:call(?session_server, stop).
 
-init_session(UserId, SessionId) ->
-                gen_server:call(?session_server, {init_session, {UserId, SessionId}}).
+init_session(UserId) ->
+        gen_server:call(?session_server, {init_session, UserId}).
 
 get_user_sessions(UserId) ->
-                gen_server:call(?session_server, {get_sessions, UserId}).
+        gen_server:call(?session_server, {get_sessions, UserId}).
 
 get_session(SessionId) ->
-                gen_server:call(?session_server, {get_session, SessionId}).
+        gen_server:call(?session_server, {get_session, SessionId}).
 
-terminate_session(SessionKey) ->
-                gen_server:call(?session_server, {terminate_session, SessionKey}).
+terminate_session(SessionId) ->
+        gen_server:call(?session_server, {terminate_session, SessionId}).
 
 % gen server callbacks
 init(_Args) ->
@@ -68,44 +68,44 @@ init(_Args) ->
                                       {read_concurrency, true}]),
         {ok, Id}.
 
-handle_call({init_session, {UserId, SessionId}}, _From, State) ->
-                SessionsTableId = State,
-                Session = #erlchat_session{ id = SessionId,
-                                            user_id = UserId,
-                                            last_seen = erlang:now() },
-                true = ets:insert(SessionsTableId, Session),
-                {reply, {initiated, Session}, State};
+handle_call({init_session, UserId}, _From, State) ->
+        SessionsTableId = State,
+        Session = #erlchat_session{ id = erlchat_utils:generate_uuid(),
+                                    user_id = UserId,
+                                    last_seen = erlang:now() },
+        true = ets:insert(SessionsTableId, Session),
+        {reply, {initiated, Session}, State};
 
 handle_call({get_sessions, UserId}, _From, State) ->
-                SessionsTableId = State,
-                MS = ets:fun2ms(fun(S = #erlchat_session { user_id = SUserId }) when SUserId =:= UserId -> S end),
-                Sessions = ets:select(SessionsTableId, MS),
-                {reply, {ok, Sessions}, State};
+        SessionsTableId = State,
+        MS = ets:fun2ms(fun(S = #erlchat_session { user_id = SUserId }) when SUserId =:= UserId -> S end),
+        Sessions = ets:select(SessionsTableId, MS),
+        {reply, {ok, Sessions}, State};
 
 handle_call({get_session, SessionId}, _From, State) ->
-                SessionsTableId = State,
-                Resp = case ets:lookup(SessionsTableId, SessionId) of
-                        [Session] -> {ok, Session};
-                        [] -> {error, not_found}
-                       end,
-                {reply, Resp, State};
+        SessionsTableId = State,
+        Resp = case ets:lookup(SessionsTableId, SessionId) of
+                [Session] -> {ok, Session};
+                [] -> {error, not_found}
+               end,
+        {reply, Resp, State};
 
-handle_call({terminate_session, SessionKey}, _From, State) ->
-                SessionsTableId = State,
-                ets:delete(SessionsTableId, SessionKey),
-                {reply, {ok, terminated}, State};
+handle_call({terminate_session, SessionId}, _From, State) ->
+        SessionsTableId = State,
+        ets:delete(SessionsTableId, SessionId),
+        {reply, {ok, terminated}, State};
 
 handle_call(stop, _From, State) ->
-                {stop, normal, ok, State}.
+        {stop, normal, ok, State}.
 
 handle_cast(_Request, State) ->
-                {noreply, State}.
+        {noreply, State}.
 
 handle_info(_Info, State) ->
-                {noreply, State}.
+        {noreply, State}.
 
 terminate(_Reason, _State) ->
-                ok.
+        ok.
 
 code_change(_OldVsn, State, _Extra) ->
-                {ok, State}.
+        {ok, State}.
