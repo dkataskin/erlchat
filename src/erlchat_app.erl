@@ -34,33 +34,33 @@
 -export([start/2, stop/1]).
 
 start(_Type, _Args) ->
-            AuthToken = case application:get_env(erlchat, auth_token) of
-                          {ok, Token} -> Token;
-                          undefined -> undefined
-                        end,
+        AuthToken = case application:get_env(erlchat, auth_token) of
+                      {ok, Token} -> Token;
+                      undefined -> undefined
+                    end,
 
-            Dispatch = cowboy_router:compile([
-              {'_', [
-                static_files("js"),
-                static_files("css"),
-                static_files("img"),
-                {"/", toppage_handler, []},
-                {"/sample", sample_handler, []},
-                {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
-                {"/erlchat", bullet_handler, [{handler, erlchat_handler}]}
-              ]}
-            ]),
-            {ok, _} = cowboy:start_http(http, 100,
-              [{port, 8085}], [{env, [{dispatch, Dispatch}]}]
-            ),
-            erlchat_sup:start_link().
+        Dispatch = cowboy_router:compile([
+          {'_', [
+            static_files("js"),
+            static_files("css"),
+            static_files("img"),
+            {"/", toppage_handler, []},
+            {"/sample", sample_handler, []},
+            {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
+            {"/erlchat", bullet_handler, [{handler, erlchat_handler}]}
+          ]}
+        ]),
+        {ok, _} = cowboy:start_http(http, 100,
+          [{port, 8085}], [{env, [{dispatch, Dispatch}]}]
+        ),
+        erlchat_sup:start_link().
 
 stop(_State) ->
-		        ok.
+        ok.
 
 static_files(FileType) ->
-            {lists:append(["/", FileType, "/[...]"]), cowboy_static,
-              {dir, static_content_dir(FileType), [{mimetypes, cow_mimetypes, web}]}}.
+        {lists:append(["/", FileType, "/[...]"]), cowboy_static,
+          {dir, static_content_dir(FileType), [{mimetypes, cow_mimetypes, web}]}}.
 
 static_content_dir(FileType) ->
-            erlchat_utils:priv_dir() ++ "/" ++ FileType.
+        erlchat_utils:priv_dir() ++ "/" ++ FileType.

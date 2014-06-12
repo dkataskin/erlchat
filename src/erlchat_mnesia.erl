@@ -39,44 +39,44 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 init(_Args) ->
-          application:set_env(mnesia, dir, filename:join([code:priv_dir(erlchat), ?data_dir])),
-          application:start(mnesia),
-          Nodes = erlang:node(),
-          create_schema(Nodes),
-          {ok, no_state}.
+        application:set_env(mnesia, dir, filename:join([code:priv_dir(erlchat), ?data_dir])),
+        application:start(mnesia),
+        Nodes = erlang:node(),
+        create_schema(Nodes),
+        {ok, no_state}.
 
 handle_call({get_user, Id}, _From, State) ->
-                User = #erlchat_user { id = Id },
-                {reply, User, State}.
+        User = #erlchat_user { id = Id },
+        {reply, User, State}.
 
 handle_cast(_Request, State) ->
-                {noreply, State}.
+        {noreply, State}.
 
 handle_info(_Info, State) ->
-                {noreply, State}.
+        {noreply, State}.
 
 terminate(_Reason, _State) ->
-                ok.
+        ok.
 
 code_change(_OldVsn, State, _Extra) ->
-                {ok, State}.
+        {ok, State}.
 
 % Schema
 create_schema(Nodes) ->
-                {atomic, ok} = mnesia:create_table(erlchat_user, [{attributes, record_info(fields, erlchat_user)},
-                                                                  {index, #erlchat_user.id},
+        {atomic, ok} = mnesia:create_table(erlchat_user, [{attributes, record_info(fields, erlchat_user)},
+                                                          {index, #erlchat_user.id},
+                                                          {disc_only_copies, Nodes},
+                                                          {type, set}]),
+
+        {atomic, ok} = mnesia:create_table(erlchat_conversation, [{attributes, record_info(fields, erlchat_conversation)},
+                                                                  {index, #erlchat_conversation.id},
                                                                   {disc_only_copies, Nodes},
                                                                   {type, set}]),
 
-                {atomic, ok} = mnesia:create_table(erlchat_conversation, [{attributes, record_info(fields, erlchat_conversation)},
-                                                                          {index, #erlchat_conversation.id},
-                                                                          {disc_only_copies, Nodes},
-                                                                          {type, set}]),
-
-                {atomic, ok} = mnesia:create_table(erlchat_message, [{attributes, record_info(fields, erlchat_message)},
-                                                                     {index, #erlchat_message.id},
-                                                                     {disc_only_copies, Nodes},
-                                                                     {type, set}]),
-                ok.
+        {atomic, ok} = mnesia:create_table(erlchat_message, [{attributes, record_info(fields, erlchat_message)},
+                                                             {index, #erlchat_message.id},
+                                                             {disc_only_copies, Nodes},
+                                                             {type, set}]),
+        ok.
 
 

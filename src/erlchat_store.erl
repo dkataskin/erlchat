@@ -39,19 +39,19 @@
 -export([start/1, stop/0, get_user/1, set_user_status/2, get_conversations/1]).
 
 start(Args) when is_list(Args) ->
-                case proplists:get_value(?store_type_key, Args) of
-                  ?mnesia_backend -> gen_server:start_link({local, ?store_server}, erlchat_mnesia, Args, []);
-                  _ -> {error, unknown_store_backend}
-                end.
+        case proplists:get_value(?store_type_key, Args) of
+          ?mnesia_backend -> gen_server:start_link({local, ?store_server}, erlchat_mnesia, Args, []);
+          _ -> {error, unknown_store_backend}
+        end.
 
 stop() ->
-      ok.
+        ok.
 
 get_user(UserId) ->
-                gen_server:call(?store_server, {get_user, UserId}).
+        gen_server:call(?store_server, {get_user, UserId}).
 
 set_user_status(UserId, Status) ->
-                erlang:error(not_implemented).
+        erlang:error(not_implemented).
 
 get_conversations(UserId) ->
-                erlang:error(not_implemented).
+        erlang:error(not_implemented).
