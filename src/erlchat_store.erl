@@ -36,14 +36,16 @@
 -define(mnesia_backend, mnesia).
 
 %% API
--export([start/1, stop/0]).
+-export([start_link/1, stop/0]).
 -export([get_user/1]).
 -export([start_new_topic/2, get_topic/1]).
 
-start(Args) when is_list(Args) ->
+start_link(Args) when is_list(Args) ->
         case proplists:get_value(?store_type_key, Args) of
-          ?mnesia_backend -> gen_server:start_link({local, ?store_server}, erlchat_mnesia, Args, []);
-          _ -> {error, unknown_store_backend}
+          ?mnesia_backend ->
+            gen_server:start_link({local, ?store_server}, erlchat_mnesia, Args, []);
+          _ ->
+            {error, unknown_store_backend}
         end.
 
 stop() ->

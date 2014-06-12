@@ -46,7 +46,10 @@ start_link() ->
 %% supervisor.
 
 init(_Args) ->
-        SessionServer = {session_server,
+        SessionServer = {erlchat_session_server,
                             {erlchat_sessions, start_link, []}, permanent, 5000, worker, [erlchat_sessions]},
-        Procs = [SessionServer],
+        Store = {erlchat_store,
+                    {erlchat_store, start_link, [[{type, mnesia}]]}, permanent, 5000, worker, [erlchat_store]},
+
+        Procs = [SessionServer, Store],
         {ok, {{one_for_one, 10, 10}, Procs}}.

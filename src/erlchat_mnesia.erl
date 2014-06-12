@@ -42,8 +42,8 @@
 init(_Args) ->
         application:set_env(mnesia, dir, filename:join([erlchat_utils:priv_dir(), ?data_dir])),
         application:start(mnesia),
-        Nodes = erlang:node(),
-        create_schema(Nodes),
+        LocalNode = erlang:node(),
+        create_schema([LocalNode]),
         {ok, no_state}.
 
 handle_call({get_user, Id}, _From, State) ->
@@ -73,17 +73,17 @@ code_change(_OldVsn, State, _Extra) ->
 % Schema
 create_schema(Nodes) ->
         {atomic, ok} = mnesia:create_table(erlchat_user, [{attributes, record_info(fields, erlchat_user)},
-                                                          {index, #erlchat_user.id},
+                                                          %{index, [#erlchat_user.id]},
                                                           {disc_only_copies, Nodes},
                                                           {type, set}]),
 
         {atomic, ok} = mnesia:create_table(erlchat_topic, [{attributes, record_info(fields, erlchat_topic)},
-                                                           {index, #erlchat_topic.id},
+                                                           %{index, [#erlchat_topic.id]},
                                                            {disc_only_copies, Nodes},
                                                            {type, set}]),
 
         {atomic, ok} = mnesia:create_table(erlchat_message, [{attributes, record_info(fields, erlchat_message)},
-                                                             {index, #erlchat_message.id},
+                                                             %{index, [#erlchat_message.id]},
                                                              {disc_only_copies, Nodes},
                                                              {type, set}]),
         ok.

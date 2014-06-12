@@ -36,7 +36,7 @@
 -define(session_server, erlchat_sessions).
 
 -record(erlchat_user, {id = <<>>,
-                       avatar = "",
+                       avatar = <<>>,
                        nickname = <<>>}).
 
 -record(erlchat_topic, {id = <<>>,
