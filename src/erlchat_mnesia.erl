@@ -50,6 +50,9 @@ handle_call({get_user, Id}, _From, State) ->
         User = #erlchat_user { id = Id },
         {reply, User, State};
 
+handle_call({get_topic, TopicId}, _From, State) ->
+        {reply, {ok, #erlchat_topic{ id = TopicId }}, State};
+
 handle_call({start_new_topic, Topic=#erlchat_topic{}}, _From, State) ->
         Topic1 = Topic#erlchat_topic{ id = erlchat_utils:generate_uuid() },
 
