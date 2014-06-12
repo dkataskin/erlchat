@@ -38,8 +38,9 @@
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
+%% gen_server callbacks
 init(_Args) ->
-        application:set_env(mnesia, dir, filename:join([code:priv_dir(erlchat), ?data_dir])),
+        application:set_env(mnesia, dir, filename:join([erlchat_utils:priv_dir(), ?data_dir])),
         application:start(mnesia),
         Nodes = erlang:node(),
         create_schema(Nodes),
@@ -47,7 +48,12 @@ init(_Args) ->
 
 handle_call({get_user, Id}, _From, State) ->
         User = #erlchat_user { id = Id },
-        {reply, User, State}.
+        {reply, User, State};
+
+handle_call({start_new_topic, Topic=#erlchat_topic{}}, _From, State) ->
+        Topic1 = Topic#erlchat_topic{ id = erlchat_utils:generate_uuid() },
+
+        {reply, {created, Topic1}, State}.
 
 handle_cast(_Request, State) ->
         {noreply, State}.
@@ -68,15 +74,13 @@ create_schema(Nodes) ->
                                                           {disc_only_copies, Nodes},
                                                           {type, set}]),
 
-        {atomic, ok} = mnesia:create_table(erlchat_conversation, [{attributes, record_info(fields, erlchat_conversation)},
-                                                                  {index, #erlchat_conversation.id},
-                                                                  {disc_only_copies, Nodes},
-                                                                  {type, set}]),
+        {atomic, ok} = mnesia:create_table(erlchat_topic, [{attributes, record_info(fields, erlchat_topic)},
+                                                           {index, #erlchat_topic.id},
+                                                           {disc_only_copies, Nodes},
+                                                           {type, set}]),
 
         {atomic, ok} = mnesia:create_table(erlchat_message, [{attributes, record_info(fields, erlchat_message)},
                                                              {index, #erlchat_message.id},
                                                              {disc_only_copies, Nodes},
                                                              {type, set}]),
         ok.
-
-

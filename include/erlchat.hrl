@@ -35,14 +35,14 @@
 -define(store_server, erlchat_store).
 -define(session_server, erlchat_sessions).
 
--record(erlchat_user, {id = <<"">>,
+-record(erlchat_user, {id = <<>>,
                        avatar = "",
-                       nickname = <<"">>}).
+                       nickname = <<>>}).
 
--record(erlchat_conversation, {id = <<>>,
-                               subject = <<"">>,
-                               participants = [],
-                               created_at = erlang:now()}).
+-record(erlchat_topic, {id = <<>>,
+                        subject = <<>>,
+                        users = [],
+                        created_at = erlang:now()}).
 
 -record(erlchat_session, {id = <<"">>,
                           user_id = <<"">>,

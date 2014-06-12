@@ -36,7 +36,9 @@
 -define(mnesia_backend, mnesia).
 
 %% API
--export([start/1, stop/0, get_user/1, set_user_status/2, get_conversations/1]).
+-export([start/1, stop/0]).
+-export([get_user/1]).
+-export([start_new_topic/2, get_conversations/1]).
 
 start(Args) when is_list(Args) ->
         case proplists:get_value(?store_type_key, Args) of
@@ -47,11 +49,23 @@ start(Args) when is_list(Args) ->
 stop() ->
         ok.
 
+start_new_topic(Users, Subject) ->
+        Topic = #erlchat_topic{ users = Users, subject = Subject},
+        case is_valid(Topic) of
+          true ->
+            gen_server:call(?store_server, {start_new_topic, Topic});
+          false ->
+            {error, invalid_data}
+        end.
+
+get_conversations(ConversationId) ->
+        gen_server:call(?store_server, {get_conversation, ConversationId}).
+
 get_user(UserId) ->
         gen_server:call(?store_server, {get_user, UserId}).
 
-set_user_status(UserId, Status) ->
-        erlang:error(not_implemented).
-
-get_conversations(UserId) ->
-        erlang:error(not_implemented).
+is_valid(Conversation=#erlchat_topic{}) ->
+        (lists:flatlength(Conversation#erlchat_topic.users) > 0) and
+        erlang:is_list(Conversation#erlchat_topic.users) and
+        lists:foreach(fun(UserId) -> is_binary(UserId) and (UserId =/= <<>>) end,
+                      Conversation#erlchat_topic.users).
