@@ -38,7 +38,7 @@
 %% API
 -export([start/1, stop/0]).
 -export([get_user/1]).
--export([start_new_topic/2, get_conversations/1]).
+-export([start_new_topic/2, get_topic/1]).
 
 start(Args) when is_list(Args) ->
         case proplists:get_value(?store_type_key, Args) of
@@ -58,14 +58,14 @@ start_new_topic(Users, Subject) ->
             {error, invalid_data}
         end.
 
-get_conversations(ConversationId) ->
-        gen_server:call(?store_server, {get_conversation, ConversationId}).
+get_topic(TopicId) ->
+        gen_server:call(?store_server, {get_topic, TopicId}).
 
 get_user(UserId) ->
         gen_server:call(?store_server, {get_user, UserId}).
 
-is_valid(Conversation=#erlchat_topic{}) ->
-        (lists:flatlength(Conversation#erlchat_topic.users) > 0) and
-        erlang:is_list(Conversation#erlchat_topic.users) and
+is_valid(Topic=#erlchat_topic{}) ->
+        (lists:flatlength(Topic#erlchat_topic.users) > 0) and
+        erlang:is_list(Topic#erlchat_topic.users) and
         lists:foreach(fun(UserId) -> is_binary(UserId) and (UserId =/= <<>>) end,
-                      Conversation#erlchat_topic.users).
+                      Topic#erlchat_topic.users).
