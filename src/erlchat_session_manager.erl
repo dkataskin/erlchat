@@ -11,7 +11,7 @@
 % this list of conditions and the following disclaimer in the documentation
 % and/or other materials provided with the distribution.
 %
-% * Neither the name of the {organization} nor the names of its
+% * Neither the name of the erlchat nor the names of its
 % contributors may be used to endorse or promote products derived from
 % this software without specific prior written permission.
 %
@@ -26,32 +26,46 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+-module(erlchat_session_manager).
 -author("Dmitry Kataskin").
 
--ifndef(PRINT).
--define(PRINT(Var), io:format("DEBUG: ~p:~p - ~p~n~n ~p~n~n", [?MODULE, ?LINE, ??Var, Var])).
--endif.
+-include("erlchat.hrl").
 
--define(store_server, erlchat_store).
--define(session_server, erlchat_sessions).
+-behaviour(gen_server).
 
--record(erlchat_user, {id = <<"">>,
-                       avatar = "",
-                       nickname = <<"">>}).
+%% API
+-export([start/0, start_link/0, get_events/1]).
 
--record(erlchat_conversation, {id = <<>>,
-                               subject = <<"">>,
-                               participants = [],
-                               created_at = erlang:now()}).
+%% gen_serve callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(erlchat_session, {id = <<"">>,
-                          user_id = <<"">>,
-                          events = queue:new(),
-                          status = offline,
-                          last_seen = undefined}).
+%% API
+start_link() ->
+        gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
--record(erlchat_message, {id = <<"">>,
-                          conversation_id = <<"">>,
-                          sender = <<>>,
-                          text = <<"">>,
-                          sent = erlang:now()}).
+start() ->
+        gen_server:start({local, ?MODULE}, ?MODULE, [], []).
+
+get_events(SessionId) ->
+        gen_server:call({local, ?MODULE}, {get_events, SessionId}).
+
+%% gen_serve callbacks
+init(_Args) ->
+        {ok, no_state}.
+
+handle_call({get_events, SessionId}, _From, State) ->
+        Session = erlchat_sessions:get_session(SessionId),
+        Sessions = erlchat_sessions:get_user_sessions(Session#erlchat_session.user_id),
+        {reply, [], State}.
+
+handle_cast(Request, State) ->
+        erlang:error(not_implemented).
+
+handle_info(Info, State) ->
+        erlang:error(not_implemented).
+
+terminate(Reason, State) ->
+        erlang:error(not_implemented).
+
+code_change(OldVsn, State, Extra) ->
+        erlang:error(not_implemented).
