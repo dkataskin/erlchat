@@ -11,7 +11,7 @@
 % this list of conditions and the following disclaimer in the documentation
 % and/or other materials provided with the distribution.
 %
-% * Neither the name of the erlchat nor the names of its
+% * Neither the name of the {organization} nor the names of its
 % contributors may be used to endorse or promote products derived from
 % this software without specific prior written permission.
 %
@@ -26,48 +26,25 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
--module(erlchat_store).
+-module(erlchat_store_tests).
 -author("Dmitry Kataskin").
 
 -include("erlchat.hrl").
 
--define(store_type_key, type).
--define(mnesia_backend, mnesia).
+-include_lib("eunit/include/eunit.hrl").
 
-%% API
--export([start_link/1, stop/0]).
--export([get_user/1]).
--export([start_new_topic/2, get_topic/1]).
+start_new_topic_test_() ->
+        {setup,
+          fun start/0,
+          fun stop/1,
+          fun topic_tests/1}.
 
-start_link(Args) when is_list(Args) ->
-        case proplists:get_value(?store_type_key, Args) of
-          ?mnesia_backend ->
-            gen_server:start_link({local, ?store_server}, erlchat_mnesia, Args, []);
-          _ ->
-            {error, unknown_store_backend}
-        end.
+start() ->
+        {ok, Pid} = erlchat_store:start_link([{type, mnesia}]),
+        Pid.
 
-stop() ->
-        gen_server:call({local, ?store_server}, stop).
+stop(_Pid) ->
+        erlchat_store:stop().
 
-start_new_topic(Users, Subject) ->
-        Topic = #erlchat_topic{ users = Users, subject = Subject},
-        case is_valid(Topic) of
-          true ->
-            gen_server:call(?store_server, {start_new_topic, Topic});
-          false ->
-            {error, invalid_data}
-        end.
-
-get_topic(TopicId) ->
-        gen_server:call(?store_server, {get_topic, TopicId}).
-
-get_user(UserId) ->
-        gen_server:call(?store_server, {get_user, UserId}).
-
-is_valid(Topic=#erlchat_topic{}) ->
-        (lists:flatlength(Topic#erlchat_topic.users) > 0) and
-        erlang:is_list(Topic#erlchat_topic.users) and
-        lists:all(fun(UserId) -> is_binary(UserId) and (UserId =/= <<>>) end,
-                  Topic#erlchat_topic.users).
+topic_tests(_Pid) ->
+        [?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([], <<"subj">>))].

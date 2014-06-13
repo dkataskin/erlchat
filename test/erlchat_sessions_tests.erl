@@ -34,9 +34,6 @@
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("xmerl/include/xmerl.hrl").
 
-%% API
--export([]).
-
 start_stop_server_test_() ->
         {setup,
          fun() ->

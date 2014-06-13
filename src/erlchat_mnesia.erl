@@ -55,7 +55,10 @@ handle_call({get_topic, TopicId}, _From, State) ->
 handle_call({start_new_topic, Topic=#erlchat_topic{}}, _From, State) ->
         Topic1 = Topic#erlchat_topic{ id = erlchat_utils:generate_uuid() },
 
-        {reply, {created, Topic1}, State}.
+        {reply, {created, Topic1}, State};
+
+handle_call(stop, _From, State) ->
+        {stop, normal, shutdown_ok, State}.
 
 handle_cast(_Request, State) ->
         {noreply, State}.
