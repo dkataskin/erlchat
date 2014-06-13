@@ -41,9 +41,8 @@
 %% gen_server callbacks
 init(_Args) ->
         application:set_env(mnesia, dir, filename:join([erlchat_utils:priv_dir(), ?data_dir])),
-        application:start(mnesia),
         LocalNode = erlang:node(),
-        create_schema([LocalNode]),
+        install([LocalNode]),
         {ok, no_state}.
 
 handle_call({get_user, Id}, _From, State) ->
@@ -71,7 +70,19 @@ code_change(_OldVsn, State, _Extra) ->
         {ok, State}.
 
 % Schema
-create_schema(Nodes) ->
+install(Nodes) ->
+        case mnesia:create_schema(Nodes) of
+          ok ->
+            rpc:multicall(Nodes, application, start, [mnesia]),
+            ok = create_tables(Nodes);
+
+          {error, {_, {already_exists, _}}} ->
+            ok
+        end,
+        rpc:multicall(Nodes, application, start, [mnesia]),
+        ok.
+
+create_tables(Nodes) ->
         {atomic, ok} = mnesia:create_table(erlchat_user, [{attributes, record_info(fields, erlchat_user)},
                                                           %{index, [#erlchat_user.id]},
                                                           {disc_only_copies, Nodes},
