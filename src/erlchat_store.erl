@@ -49,7 +49,7 @@ start_link(Args) when is_list(Args) ->
         end.
 
 stop() ->
-        gen_server:call({local, ?store_server}, stop).
+        gen_server:call(?store_server, stop).
 
 start_new_topic(Users, Subject) ->
         Topic = #erlchat_topic{ users = Users, subject = Subject},
@@ -67,7 +67,7 @@ get_user(UserId) ->
         gen_server:call(?store_server, {get_user, UserId}).
 
 is_valid(Topic=#erlchat_topic{}) ->
-        (lists:flatlength(Topic#erlchat_topic.users) > 0) and
         erlang:is_list(Topic#erlchat_topic.users) and
+        (lists:flatlength(Topic#erlchat_topic.users) > 0) and
         lists:all(fun(UserId) -> is_binary(UserId) and (UserId =/= <<>>) end,
                   Topic#erlchat_topic.users).

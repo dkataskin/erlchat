@@ -47,4 +47,5 @@ stop(_Pid) ->
         erlchat_store:stop().
 
 topic_tests(_Pid) ->
-        [?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([], <<"subj">>))].
+        [?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([12, 11], <<"subj">>)),
+         ?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([], <<"subj">>))].
