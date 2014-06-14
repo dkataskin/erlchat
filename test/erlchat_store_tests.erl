@@ -33,11 +33,17 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
-start_new_topic_test_() ->
+topic_validation_test_() ->
         {setup,
           fun start/0,
           fun stop/1,
-          fun topic_tests/1}.
+          fun topic_validation_tests/1}.
+
+add_topic_test_() ->
+        {setup,
+          fun start/0,
+          fun stop/1,
+          fun add_topic_test/1}.
 
 start() ->
         {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}]),
@@ -46,6 +52,15 @@ start() ->
 stop(_Pid) ->
         erlchat_store:stop().
 
-topic_tests(_Pid) ->
-        [?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([12, 11], <<"subj">>)),
+topic_validation_tests(_Pid) ->
+        [?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([12, 13], <<"subj">>)),
+         ?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic(1234, <<"subj">>)),
+         ?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([<<"user1">>], <<"subj">>)),
          ?_assertMatch({error, invalid_data}, erlchat_store:start_new_topic([], <<"subj">>))].
+
+add_topic_test(_Pid) ->
+        Users = [<<"user1">>, <<"user2">>],
+        Subject = <<"test">>,
+        {created, Topic1} = erlchat_store:start_new_topic(Users, Subject),
+        [?_assertMatch(Users, Topic1#erlchat_topic.users),
+         ?_assertMatch(Subject, Topic1#erlchat_topic.subject)].

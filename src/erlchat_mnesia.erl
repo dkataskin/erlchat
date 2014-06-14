@@ -59,8 +59,7 @@ handle_call({get_topic, TopicId}, _From, State) ->
         {reply, {ok, #erlchat_topic{ id = TopicId }}, State};
 
 handle_call({start_new_topic, Topic=#erlchat_topic{}}, _From, State) ->
-        Topic1 = Topic#erlchat_topic{ id = erlchat_utils:generate_uuid() },
-
+        Topic1 = add_topic(Topic),
         {reply, {created, Topic1}, State};
 
 handle_call(stop, _From, State) ->
@@ -107,3 +106,8 @@ create_tables(Nodes) ->
                                                              {disc_only_copies, Nodes},
                                                              {type, set}]),
         ok.
+
+add_topic(Topic=#erlchat_topic{}) ->
+        Topic1 = Topic#erlchat_topic{ id = erlchat_utils:generate_uuid() },
+        mnesia:activity(transaction, fun() -> mnesia:write(Topic1) end),
+        Topic1.

@@ -67,7 +67,7 @@ get_user(UserId) ->
         gen_server:call(?store_server, {get_user, UserId}).
 
 is_valid(Topic=#erlchat_topic{}) ->
-        erlang:is_list(Topic#erlchat_topic.users) and
-        (lists:flatlength(Topic#erlchat_topic.users) > 0) and
+        erlang:is_list(Topic#erlchat_topic.users) andalso
+        (lists:flatlength(Topic#erlchat_topic.users) > 1) andalso
         lists:all(fun(UserId) -> is_binary(UserId) and (UserId =/= <<>>) end,
                   Topic#erlchat_topic.users).
