@@ -56,7 +56,7 @@ handle_call({get_user, Id}, _From, State) ->
         {reply, User, State};
 
 handle_call({get_topic, TopicId}, _From, State) ->
-        {reply, {ok, #erlchat_topic{ id = TopicId }}, State};
+        {reply, get_topic(TopicId), State};
 
 handle_call({start_new_topic, Topic=#erlchat_topic{}}, _From, State) ->
         Topic1 = add_topic(Topic),
@@ -111,3 +111,11 @@ add_topic(Topic=#erlchat_topic{}) ->
         Topic1 = Topic#erlchat_topic{ id = erlchat_utils:generate_uuid() },
         mnesia:activity(transaction, fun() -> mnesia:write(Topic1) end),
         Topic1.
+
+get_topic(TopicId) ->
+        case mnesia:activity(transaction, fun() -> mnesia:read({erlchat_topic, TopicId}) end) of
+          [Topic] ->
+            {ok, Topic};
+          [] ->
+            {error, not_found}
+        end.

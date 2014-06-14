@@ -45,6 +45,12 @@ add_topic_test_() ->
           fun stop/1,
           fun add_topic_test/1}.
 
+get_topic_test_() ->
+        {setup,
+          fun start/0,
+          fun stop/1,
+          fun get_topic_test/1}.
+
 start() ->
         {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}]),
         Pid.
@@ -63,4 +69,12 @@ add_topic_test(_Pid) ->
         Subject = <<"test">>,
         {created, Topic1} = erlchat_store:start_new_topic(Users, Subject),
         [?_assertMatch(Users, Topic1#erlchat_topic.users),
-         ?_assertMatch(Subject, Topic1#erlchat_topic.subject)].
+         ?_assertMatch(Subject, Topic1#erlchat_topic.subject),
+         ?_assertNotMatch(<<>>, Topic1#erlchat_topic.id)].
+
+get_topic_test(_Pid) ->
+        Users = [<<"user1">>, <<"user2">>],
+        Subject = <<"test">>,
+        {created, Topic} = erlchat_store:start_new_topic(Users, Subject),
+        {ok, Topic1} = erlchat_store:get_topic(Topic#erlchat_topic.id),
+        ?_assertMatch(Topic, Topic1).
