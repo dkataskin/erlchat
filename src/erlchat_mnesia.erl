@@ -39,8 +39,14 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 %% gen_server callbacks
-init(_Args) ->
-        application:set_env(mnesia, dir, filename:join([erlchat_utils:priv_dir(), ?data_dir])),
+init(Args) ->
+        DataDir = case proplists:get_value(data_dir, Args) of
+          undefined ->
+            filename:join([erlchat_utils:priv_dir(), ?data_dir]);
+          Dir ->
+            Dir
+        end,
+        application:set_env(mnesia, dir, DataDir),
         LocalNode = erlang:node(),
         install([LocalNode]),
         {ok, no_state}.

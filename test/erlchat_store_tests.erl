@@ -40,7 +40,7 @@ start_new_topic_test_() ->
           fun topic_tests/1}.
 
 start() ->
-        {ok, Pid} = erlchat_store:start_link([{type, mnesia}]),
+        {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}]),
         Pid.
 
 stop(_Pid) ->
