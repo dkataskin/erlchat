@@ -39,6 +39,7 @@
 -export([start_link/1, stop/0]).
 -export([get_user/1]).
 -export([start_new_topic/2, get_topic/1]).
+-export([add_message/3, get_message/1]).
 
 start_link(Args) when is_list(Args) ->
         case proplists:get_value(?store_type_key, Args) of
@@ -63,11 +64,32 @@ start_new_topic(Users, Subject) ->
 get_topic(TopicId) ->
         gen_server:call(?store_server, {get_topic, TopicId}).
 
+add_message(Sender, TopicId, Text) ->
+        Message = #erlchat_message { sender = Sender, topic_id = TopicId, text = Text },
+        case is_valid(Message) of
+          true ->
+            gen_server:call(?store_server, {add_message, Message});
+          false ->
+            {error, invalid_data}
+        end.
+
+get_message(MessageId) ->
+        gen_server:call(?store_server, {get_message, MessageId}).
+
 get_user(UserId) ->
         gen_server:call(?store_server, {get_user, UserId}).
 
 is_valid(Topic=#erlchat_topic{}) ->
-        erlang:is_list(Topic#erlchat_topic.users) andalso
+        is_list(Topic#erlchat_topic.users) andalso
         (lists:flatlength(Topic#erlchat_topic.users) > 1) andalso
         lists:all(fun(UserId) -> is_binary(UserId) and (UserId =/= <<>>) end,
-                  Topic#erlchat_topic.users).
+                  Topic#erlchat_topic.users);
+
+is_valid(Message=#erlchat_message{}) ->
+        is_binary(Message#erlchat_message.sender) andalso
+        Message#erlchat_message.sender =/= <<>> andalso
+        is_binary(Message#erlchat_message.topic_id) andalso
+        Message#erlchat_message.topic_id =/= <<>> andalso
+        is_binary(Message#erlchat_message.text) andalso
+        Message#erlchat_message.text =/= <<>>.
+

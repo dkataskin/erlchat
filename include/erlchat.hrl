@@ -50,8 +50,8 @@
                           status = offline,
                           last_seen = undefined}).
 
--record(erlchat_message, {id = <<"">>,
-                          conversation_id = <<"">>,
+-record(erlchat_message, {id = <<>>,
+                          topic_id = <<>>,
                           sender = <<>>,
-                          text = <<"">>,
+                          text = <<>>,
                           sent = erlang:now()}).
