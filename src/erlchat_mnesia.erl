@@ -61,7 +61,7 @@ handle_call({get_user, Id}, _From, State) ->
 handle_call({get_topic, TopicId}, _From, State) ->
         {reply, get_topic(TopicId), State};
 
-handle_call({start_new_topic, Topic=#erlchat_topic{}}, _From, State) ->
+handle_call({add_topic, Topic=#erlchat_topic{}}, _From, State) ->
         Topic1 = add_topic(Topic),
         {reply, {created, Topic1}, State};
 

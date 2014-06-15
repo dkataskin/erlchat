@@ -38,7 +38,7 @@
 %% API
 -export([start_link/1, stop/0]).
 -export([get_user/1]).
--export([start_new_topic/2, get_topic/1]).
+-export([add_topic/2, get_topic/1]).
 -export([add_message/3, get_message/1]).
 
 start_link(Args) when is_list(Args) ->
@@ -52,11 +52,11 @@ start_link(Args) when is_list(Args) ->
 stop() ->
         gen_server:call(?store_server, stop).
 
-start_new_topic(Users, Subject) ->
+add_topic(Users, Subject) ->
         Topic = #erlchat_topic{ users = Users, subject = Subject},
         case is_valid(Topic) of
           true ->
-            gen_server:call(?store_server, {start_new_topic, Topic});
+            gen_server:call(?store_server, {add_topic, Topic});
           false ->
             {error, invalid_data}
         end.
