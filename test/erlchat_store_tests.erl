@@ -51,6 +51,18 @@ get_topic_test_() ->
           fun stop/1,
           fun get_topic_test/1}.
 
+add_message_test_() ->
+        {setup,
+          fun start/0,
+          fun stop/1,
+          fun add_message_test/1}.
+
+get_message_test_() ->
+        {setup,
+          fun start/0,
+          fun stop/1,
+          fun get_message_test/1}.
+
 start() ->
         {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}]),
         Pid.
@@ -67,10 +79,10 @@ topic_validation_tests(_Pid) ->
 add_topic_test(_Pid) ->
         Users = [<<"user1">>, <<"user2">>],
         Subject = <<"test">>,
-        {created, Topic1} = erlchat_store:start_new_topic(Users, Subject),
-        [?_assertMatch(Users, Topic1#erlchat_topic.users),
-         ?_assertMatch(Subject, Topic1#erlchat_topic.subject),
-         ?_assertNotMatch(<<>>, Topic1#erlchat_topic.id)].
+        {created, Topic} = erlchat_store:start_new_topic(Users, Subject),
+        [?_assertMatch(Users, Topic#erlchat_topic.users),
+         ?_assertMatch(Subject, Topic#erlchat_topic.subject),
+         ?_assertNotMatch(<<>>, Topic#erlchat_topic.id)].
 
 get_topic_test(_Pid) ->
         Users = [<<"user1">>, <<"user2">>],
@@ -78,3 +90,21 @@ get_topic_test(_Pid) ->
         {created, Topic} = erlchat_store:start_new_topic(Users, Subject),
         {ok, Topic1} = erlchat_store:get_topic(Topic#erlchat_topic.id),
         ?_assertMatch(Topic, Topic1).
+
+add_message_test(_Pid) ->
+        Sender = <<"user1">>,
+        TopicId = <<"topic1">>,
+        Text = <<"hey there">>,
+        {created, Message} = erlchat_store:add_message(Sender, TopicId, Text),
+        [?_assertMatch(Sender, Message#erlchat_message.sender),
+         ?_assertMatch(TopicId, Message#erlchat_message.topic_id),
+         ?_assertMatch(Text, Message#erlchat_message.text),
+         ?_assertNotMatch(<<>>, Message#erlchat_message.id)].
+
+get_message_test(_Pid) ->
+        Sender = <<"user1">>,
+        TopicId = <<"topic1">>,
+        Text = <<"hey there">>,
+        {created, Message} = erlchat_store:add_message(Sender, TopicId, Text),
+        {ok, Message1} = erlchat_store:get_message(Message#erlchat_message.id),
+        ?_assertMatch(Message, Message1).

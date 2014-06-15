@@ -127,7 +127,7 @@ get_topic(TopicId) ->
 
 add_message(Message=#erlchat_message{}) ->
         Message1 = Message#erlchat_message { id = erlchat_utils:generate_uuid() },
-        mnesia:activity(transaction, fun() -> mnesia:write(Message) end),
+        mnesia:activity(transaction, fun() -> mnesia:write(Message1) end),
         Message1.
 
 get_message(MessageId) ->
