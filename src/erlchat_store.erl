@@ -37,7 +37,7 @@
 
 %% API
 -export([start_link/1, stop/0]).
--export([get_user/1]).
+-export([add_user/2, get_user/1]).
 -export([add_topic/2, get_topic/1]).
 -export([add_message/3, get_message/1]).
 
@@ -54,30 +54,32 @@ stop() ->
 
 add_topic(Users, Subject) ->
         Topic = #erlchat_topic{ users = Users, subject = Subject},
-        case is_valid(Topic) of
-          true ->
-            gen_server:call(?store_server, {add_topic, Topic});
-          false ->
-            {error, invalid_data}
-        end.
+        execute_if_valid(Topic, fun() -> gen_server:call(?store_server, {add_topic, Topic}) end).
 
 get_topic(TopicId) ->
         gen_server:call(?store_server, {get_topic, TopicId}).
 
 add_message(Sender, TopicId, Text) ->
         Message = #erlchat_message { sender = Sender, topic_id = TopicId, text = Text },
-        case is_valid(Message) of
-          true ->
-            gen_server:call(?store_server, {add_message, Message});
-          false ->
-            {error, invalid_data}
-        end.
+        execute_if_valid(Message, fun() -> gen_server:call(?store_server, {add_message, Message}) end).
 
 get_message(MessageId) ->
         gen_server:call(?store_server, {get_message, MessageId}).
 
+add_user(Nickname, Avatar) ->
+        User = #erlchat_user{ nickname = Nickname, avatar = Avatar },
+        execute_if_valid(User, fun() -> gen_server:call(?store_server, {add_user, User}) end).
+
 get_user(UserId) ->
         gen_server:call(?store_server, {get_user, UserId}).
+
+execute_if_valid(Data, HappyPath) ->
+        case is_valid(Data) of
+          true ->
+            HappyPath();
+          false ->
+            {error, invalid_data}
+        end.
 
 is_valid(Topic=#erlchat_topic{}) ->
         is_list(Topic#erlchat_topic.users) andalso
@@ -91,5 +93,10 @@ is_valid(Message=#erlchat_message{}) ->
         is_binary(Message#erlchat_message.topic_id) andalso
         Message#erlchat_message.topic_id =/= <<>> andalso
         is_binary(Message#erlchat_message.text) andalso
-        Message#erlchat_message.text =/= <<>>.
+        Message#erlchat_message.text =/= <<>>;
+
+is_valid(User=#erlchat_user{}) ->
+        is_binary(User#erlchat_user.nickname) andalso
+        User#erlchat_user.nickname =/= <<>>.
+
 
