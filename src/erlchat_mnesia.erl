@@ -77,6 +77,9 @@ handle_call({add_message_ack, MessageAck=#erlchat_message_ack{}}, _From, State) 
         MessageAck1 = add_message_ack(MessageAck),
         {reply, {created, MessageAck1}, State};
 
+handle_call({get_message_acks, {Sender, TopicId}}, _From, State) ->
+        {reply, ok, State};
+
 handle_call(stop, _From, State) ->
         {stop, normal, shutdown_ok, State}.
 
@@ -121,7 +124,7 @@ create_tables(Nodes) ->
                                                              {disc_only_copies, Nodes},
                                                              {type, set}]),
 
-        {atomic, ok} = mnesia:create_table(?messages_table, [{attributes, record_info(fields, erlhat_message_ack)},
+        {atomic, ok} = mnesia:create_table(?messages_table, [{attributes, record_info(fields, erlchat_message_ack)},
                                                              %{index, [#erlhat_message_ack.id]},
                                                              {disc_only_copies, Nodes},
                                                              {type, set}]),

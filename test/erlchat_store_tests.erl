@@ -33,35 +33,16 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
-topic_validation_test_() ->
-        {setup,
+all_test_() ->
+        {foreach,
           fun start/0,
           fun stop/1,
-          fun topic_validation_tests/1}.
-
-add_topic_test_() ->
-        {setup,
-          fun start/0,
-          fun stop/1,
-          fun add_topic_test/1}.
-
-get_topic_test_() ->
-        {setup,
-          fun start/0,
-          fun stop/1,
-          fun get_topic_test/1}.
-
-add_message_test_() ->
-        {setup,
-          fun start/0,
-          fun stop/1,
-          fun add_message_test/1}.
-
-get_message_test_() ->
-        {setup,
-          fun start/0,
-          fun stop/1,
-          fun get_message_test/1}.
+          [fun topic_validation_tests/1,
+           fun add_topic_test/1,
+           fun get_topic_test/1,
+           fun add_message_test/1,
+           fun get_message_test/1,
+           fun add_message_ack_test/1]}.
 
 start() ->
         {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}]),
@@ -108,3 +89,12 @@ get_message_test(_Pid) ->
         {created, Message} = erlchat_store:add_message(Sender, TopicId, Text),
         {ok, Message1} = erlchat_store:get_message(Message#erlchat_message.id),
         ?_assertMatch(Message, Message1).
+
+add_message_ack_test(_Pid) ->
+        Sender = <<"user1">>,
+        TopicId = <<"topic1">>,
+        MessageId = <<"message1">>,
+        {created, MessageAck} = erlchat_store:add_message_ack(Sender, MessageId, TopicId),
+        ?_assertMatch(#erlchat_message_ack { message_id = MessageId,
+                                             topic_id = TopicId,
+                                             user_id = Sender}, MessageAck).
