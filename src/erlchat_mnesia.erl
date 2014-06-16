@@ -73,6 +73,10 @@ handle_call({add_message, Message=#erlchat_message{}}, _From, State) ->
 handle_call({get_message, MessageId}, _From, State) ->
         {reply, get_message(MessageId), State};
 
+handle_call({add_message_ack, MessageAck=#erlchat_message_ack{}}, _From, State) ->
+        MessageAck1 = add_message_ack(MessageAck),
+        {reply, {created, MessageAck1}, State};
+
 handle_call(stop, _From, State) ->
         {stop, normal, shutdown_ok, State}.
 
@@ -138,6 +142,11 @@ add_message(Message=#erlchat_message{}) ->
 
 get_message(MessageId) ->
         find_single(MessageId, ?messages_table).
+
+add_message_ack(MessageAck=#erlchat_message_ack{}) ->
+        MessageAck1 = MessageAck#erlchat_message_ack { id = erlchat_utils:generate_uuid() },
+        mnesia:activity(transation, fun() -> mnesia:write(MessageAck1) end),
+        MessageAck1.
 
 find_single(Id, Table) ->
         case mnesia:activity(transaction, fun() -> mnesia:read({Table, Id}) end) of
