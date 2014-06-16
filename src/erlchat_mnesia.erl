@@ -33,6 +33,7 @@
 -define(users_table, erlchat_user).
 -define(topics_table, erlchat_topic).
 -define(messages_table, erlchat_message).
+-define(messages_ack_table, erlchat_message_ack).
 
 -include("erlchat.hrl").
 
@@ -113,6 +114,11 @@ create_tables(Nodes) ->
 
         {atomic, ok} = mnesia:create_table(?messages_table, [{attributes, record_info(fields, erlchat_message)},
                                                              %{index, [#erlchat_message.id]},
+                                                             {disc_only_copies, Nodes},
+                                                             {type, set}]),
+
+        {atomic, ok} = mnesia:create_table(?messages_table, [{attributes, record_info(fields, erlhat_message_ack)},
+                                                             %{index, [#erlhat_message_ack.id]},
                                                              {disc_only_copies, Nodes},
                                                              {type, set}]),
         ok.

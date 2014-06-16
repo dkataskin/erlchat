@@ -40,6 +40,7 @@
 -export([add_user/2, get_user/1]).
 -export([add_topic/2, get_topic/1]).
 -export([add_message/3, get_message/1]).
+-export([add_message_ack/3, get_message_acks/2]).
 
 start_link(Args) when is_list(Args) ->
         case proplists:get_value(?store_type_key, Args) of
@@ -66,6 +67,15 @@ add_message(Sender, TopicId, Text) ->
 get_message(MessageId) ->
         gen_server:call(?store_server, {get_message, MessageId}).
 
+add_message_ack(Sender, MessageId, TopicId) ->
+        MessageAck = #erlchat_message_ack { message_id = MessageId,
+                                            topic_id = TopicId,
+                                            user_id = Sender },
+        execute_if_valid(MessageAck, fun() -> gen_server:call(?store_server, {add_message_ack, MessageAck}) end).
+
+get_message_acks(Sender, TopicId) ->
+        gen_server:call(?store_server, {get_message_acks, {Sender, TopicId}}).
+
 add_user(Nickname, Avatar) ->
         User = #erlchat_user{ nickname = Nickname, avatar = Avatar },
         execute_if_valid(User, fun() -> gen_server:call(?store_server, {add_user, User}) end).
@@ -84,19 +94,25 @@ execute_if_valid(Data, HappyPath) ->
 is_valid(Topic=#erlchat_topic{}) ->
         is_list(Topic#erlchat_topic.users) andalso
         (lists:flatlength(Topic#erlchat_topic.users) > 1) andalso
-        lists:all(fun(UserId) -> is_binary(UserId) and (UserId =/= <<>>) end,
-                  Topic#erlchat_topic.users);
+        lists:all(fun is_valid_id/1, Topic#erlchat_topic.users);
 
 is_valid(Message=#erlchat_message{}) ->
-        is_binary(Message#erlchat_message.sender) andalso
-        Message#erlchat_message.sender =/= <<>> andalso
-        is_binary(Message#erlchat_message.topic_id) andalso
-        Message#erlchat_message.topic_id =/= <<>> andalso
-        is_binary(Message#erlchat_message.text) andalso
-        Message#erlchat_message.text =/= <<>>;
+        is_valid_id(Message#erlchat_message.sender) andalso
+        is_valid_id(Message#erlchat_message.topic_id) andalso
+        is_valid_string(Message#erlchat_message.text);
+
+is_valid(MessageAck=#erlchat_message_ack{}) ->
+        is_valid_id(MessageAck#erlchat_message_ack.message_id) andalso
+        is_valid_id(MessageAck#erlchat_message_ack.topic_id) andalso
+        is_valid_id(MessageAck#erlchat_message_ack.user_id);
 
 is_valid(User=#erlchat_user{}) ->
-        is_binary(User#erlchat_user.nickname) andalso
-        User#erlchat_user.nickname =/= <<>>.
+        is_valid_string(User#erlchat_user.nickname).
+
+is_valid_id(Id) ->
+        is_binary(Id) andalso Id =/= <<>>.
+
+is_valid_string(BitString) ->
+        is_binary(BitString) andalso BitString =/= <<>>.
 
 

@@ -55,3 +55,8 @@
                           sender = <<>>,
                           text = <<>>,
                           sent = erlang:now()}).
+
+-record(erlchat_message_ack, {id = <<>>,
+                              message_id = <<>>,
+                              topic_id = <<>>,
+                              user_id = <<>>}).
