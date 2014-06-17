@@ -49,7 +49,7 @@ all_test_() ->
           end}.
 
 start() ->
-        {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}]),
+        {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}, resync]),
         Pid.
 
 stop(_Pid) ->
