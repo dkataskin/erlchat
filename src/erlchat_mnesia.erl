@@ -34,6 +34,7 @@
 -define(topics_table, erlchat_topic).
 -define(messages_table, erlchat_message).
 -define(messages_ack_table, erlchat_message_ack).
+-define(erlchat_mnesia_tables, [?users_table, ?topics_table, ?messages_table, ?messages_ack_table]).
 
 -include("erlchat.hrl").
 
@@ -51,8 +52,17 @@ init(Args) ->
             Dir
         end,
         application:set_env(mnesia, dir, DataDir),
-        LocalNode = erlang:node(),
-        install([LocalNode]),
+        Nodes = [erlang:node()],
+
+        ok = case proplists:get_value(resync, Args) of
+              undefined ->
+                ok;
+              _ ->
+                uninstall(Nodes)
+             end,
+
+        ok = install(Nodes),
+        ok = mnesia:wait_for_tables(?erlchat_mnesia_tables, 5000),
         {ok, no_state}.
 
 handle_call({get_user, Id}, _From, State) ->
@@ -78,7 +88,8 @@ handle_call({add_message_ack, MessageAck=#erlchat_message_ack{}}, _From, State) 
         {reply, {created, MessageAck1}, State};
 
 handle_call({get_message_acks, {Sender, TopicId}}, _From, State) ->
-        {reply, ok, State};
+        MessageAcks = get_message_acks(Sender, TopicId),
+        {reply, {ok, MessageAcks}, State};
 
 handle_call(stop, _From, State) ->
         {stop, normal, shutdown_ok, State}.
@@ -108,26 +119,35 @@ install(Nodes) ->
         rpc:multicall(Nodes, application, start, [mnesia]),
         ok.
 
+uninstall(Nodes) ->
+       application:stop(mnesia),
+       ok = mnesia:delete_schema(Nodes),
+       ok.
+
 create_tables(Nodes) ->
-        {atomic, ok} = mnesia:create_table(?users_table, [{attributes, record_info(fields, erlchat_user)},
-                                                          %{index, [#erlchat_user.id]},
-                                                          {disc_only_copies, Nodes},
-                                                          {type, set}]),
+        {atomic, ok} = mnesia:create_table(?users_table,
+                                           [{attributes, record_info(fields, erlchat_user)},
+                                            %{index, [#erlchat_user.id]},
+                                            {disc_only_copies, Nodes},
+                                            {type, set}]),
 
-        {atomic, ok} = mnesia:create_table(?topics_table, [{attributes, record_info(fields, erlchat_topic)},
-                                                           %{index, [#erlchat_topic.id]},
-                                                           {disc_only_copies, Nodes},
-                                                           {type, set}]),
+        {atomic, ok} = mnesia:create_table(?topics_table,
+                                           [{attributes, record_info(fields, erlchat_topic)},
+                                            %{index, [#erlchat_topic.id]},
+                                            {disc_only_copies, Nodes},
+                                            {type, set}]),
 
-        {atomic, ok} = mnesia:create_table(?messages_table, [{attributes, record_info(fields, erlchat_message)},
-                                                             %{index, [#erlchat_message.id]},
-                                                             {disc_only_copies, Nodes},
-                                                             {type, set}]),
+        {atomic, ok} = mnesia:create_table(?messages_table,
+                                           [{attributes, record_info(fields, erlchat_message)},
+                                            %{index, [#erlchat_message.id]},
+                                            {disc_only_copies, Nodes},
+                                            {type, set}]),
 
-        {atomic, ok} = mnesia:create_table(?messages_table, [{attributes, record_info(fields, erlchat_message_ack)},
-                                                             %{index, [#erlhat_message_ack.id]},
-                                                             {disc_only_copies, Nodes},
-                                                             {type, set}]),
+        {atomic, ok} = mnesia:create_table(?messages_ack_table,
+                                           [{attributes, record_info(fields, erlchat_message_ack)},
+                                            %{index, [#erlhat_message_ack.id]},
+                                            {disc_copies, Nodes},
+                                            {type, set}]),
         ok.
 
 add_topic(Topic=#erlchat_topic{}) ->
@@ -150,6 +170,9 @@ add_message_ack(MessageAck=#erlchat_message_ack{}) ->
         MessageAck1 = MessageAck#erlchat_message_ack { id = erlchat_utils:generate_uuid() },
         mnesia:activity(transation, fun() -> mnesia:write(MessageAck1) end),
         MessageAck1.
+
+get_message_acks(UserId, TopicId) ->
+        [].
 
 find_single(Id, Table) ->
         case mnesia:activity(transaction, fun() -> mnesia:read({Table, Id}) end) of

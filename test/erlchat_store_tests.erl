@@ -34,15 +34,19 @@
 -include_lib("eunit/include/eunit.hrl").
 
 all_test_() ->
-        {foreach,
+        {setup,
           fun start/0,
           fun stop/1,
-          [fun topic_validation_tests/1,
-           fun add_topic_test/1,
-           fun get_topic_test/1,
-           fun add_message_test/1,
-           fun get_message_test/1,
-           fun add_message_ack_test/1]}.
+          fun(Pid) ->
+            {with, Pid,
+              [fun topic_validation_tests/1,
+               fun add_topic_test/1,
+               fun get_topic_test/1,
+               fun add_message_test/1,
+               fun get_message_test/1,
+               fun add_message_ack_test/1]
+            }
+          end}.
 
 start() ->
         {ok, Pid} = erlchat_store:start_link([{type, mnesia}, {data_dir, "./data"}]),
@@ -52,49 +56,45 @@ stop(_Pid) ->
         erlchat_store:stop().
 
 topic_validation_tests(_Pid) ->
-        [?_assertMatch({error, invalid_data}, erlchat_store:add_topic([12, 13], <<"subj">>)),
-         ?_assertMatch({error, invalid_data}, erlchat_store:add_topic(1234, <<"subj">>)),
-         ?_assertMatch({error, invalid_data}, erlchat_store:add_topic([<<"user1">>], <<"subj">>)),
-         ?_assertMatch({error, invalid_data}, erlchat_store:add_topic([], <<"subj">>))].
+         ?assertMatch({error, invalid_data}, erlchat_store:add_topic([12, 13], <<"subj">>)),
+         ?assertMatch({error, invalid_data}, erlchat_store:add_topic(1234, <<"subj">>)),
+         ?assertMatch({error, invalid_data}, erlchat_store:add_topic([<<"user1">>], <<"subj">>)),
+         ?assertMatch({error, invalid_data}, erlchat_store:add_topic([], <<"subj">>)).
 
 add_topic_test(_Pid) ->
         Users = [<<"user1">>, <<"user2">>],
         Subject = <<"test">>,
         {created, Topic} = erlchat_store:add_topic(Users, Subject),
-        [?_assertMatch(Users, Topic#erlchat_topic.users),
-         ?_assertMatch(Subject, Topic#erlchat_topic.subject),
-         ?_assertNotMatch(<<>>, Topic#erlchat_topic.id)].
+        ?assertMatch(Users, Topic#erlchat_topic.users),
+        ?assertMatch(Subject, Topic#erlchat_topic.subject),
+        ?assertNotMatch(<<>>, Topic#erlchat_topic.id).
 
 get_topic_test(_Pid) ->
         Users = [<<"user1">>, <<"user2">>],
         Subject = <<"test">>,
         {created, Topic} = erlchat_store:add_topic(Users, Subject),
         {ok, Topic1} = erlchat_store:get_topic(Topic#erlchat_topic.id),
-        ?_assertMatch(Topic, Topic1).
+        ?assertMatch(Topic, Topic1).
 
 add_message_test(_Pid) ->
         Sender = <<"user1">>,
         TopicId = <<"topic1">>,
         Text = <<"hey there">>,
         {created, Message} = erlchat_store:add_message(Sender, TopicId, Text),
-        [?_assertMatch(Sender, Message#erlchat_message.sender),
-         ?_assertMatch(TopicId, Message#erlchat_message.topic_id),
-         ?_assertMatch(Text, Message#erlchat_message.text),
-         ?_assertNotMatch(<<>>, Message#erlchat_message.id)].
+        ?assertMatch(#erlchat_message { sender = Sender,
+                                        topic_id = TopicId,
+                                        text = Text }, Message).
 
 get_message_test(_Pid) ->
-        Sender = <<"user1">>,
-        TopicId = <<"topic1">>,
-        Text = <<"hey there">>,
-        {created, Message} = erlchat_store:add_message(Sender, TopicId, Text),
+        {created, Message} = erlchat_store:add_message(<<"user1">>, <<"topic1">>, <<"hey there">>),
         {ok, Message1} = erlchat_store:get_message(Message#erlchat_message.id),
-        ?_assertMatch(Message, Message1).
+        ?assertMatch(Message, Message1).
 
 add_message_ack_test(_Pid) ->
         Sender = <<"user1">>,
         TopicId = <<"topic1">>,
         MessageId = <<"message1">>,
         {created, MessageAck} = erlchat_store:add_message_ack(Sender, MessageId, TopicId),
-        ?_assertMatch(#erlchat_message_ack { message_id = MessageId,
-                                             topic_id = TopicId,
-                                             user_id = Sender}, MessageAck).
+        ?assertMatch(#erlchat_message_ack { message_id = MessageId,
+                                            topic_id = TopicId,
+                                            user_id = Sender}, MessageAck).
