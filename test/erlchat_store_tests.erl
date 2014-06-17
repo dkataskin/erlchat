@@ -98,3 +98,11 @@ add_message_ack_test(_Pid) ->
         ?assertMatch(#erlchat_message_ack { message_id = MessageId,
                                             topic_id = TopicId,
                                             user_id = Sender}, MessageAck).
+
+get_message_ack_test(_Pid) ->
+        Sender = <<"user1">>,
+        TopicId = <<"topic1">>,
+        MessageId = <<"message1">>,
+        {created, _MessageAck} = erlchat_store:add_message_ack(Sender, MessageId, TopicId),
+        {ok, MessageAcks} = erlchat_store:get_message_acks(Sender, TopicId),
+        ?assertMatch([], MessageAcks).
