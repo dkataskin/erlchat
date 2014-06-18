@@ -77,8 +77,12 @@ handle_call({add_topic, Topic=#erlchat_topic{}}, _From, State) ->
         {reply, {created, Topic1}, State};
 
 handle_call({add_message, Message=#erlchat_message{}}, _From, State) ->
-        Message1 = add_message(Message),
-        {reply, {created, Message1}, State};
+        case add_message(Message) of
+          {ok, Data} ->
+            {reply, {created, Data}, State};
+          {error, Error} ->
+            {reply, {error, Error}, State}
+        end;
 
 handle_call({get_message, MessageId}, _From, State) ->
         {reply, get_message(MessageId), State};
@@ -163,10 +167,10 @@ add_message(Message=#erlchat_message{ topic_id = TopicId }) ->
         Fun = fun() ->
                 case find_single(TopicId, ?topics_table) of
                   {ok, Topic} ->
-                    MapFun = fun(User) -> #erlchat_message_ack { id = erlchat_utils:generate_uuid(),
-                                                                 message_id = Message1#erlchat_message.id,
-                                                                 topic_id = TopicId,
-                                                                 user_id = User#erlchat_user.id }
+                    MapFun = fun(UserId) -> #erlchat_message_ack { id = erlchat_utils:generate_uuid(),
+                                                                   message_id = Message1#erlchat_message.id,
+                                                                   topic_id = TopicId,
+                                                                   user_id = UserId }
                              end,
                     MessageAcks = lists:map(MapFun, Topic#erlchat_topic.users),
                     mnesia:write(Message1),
