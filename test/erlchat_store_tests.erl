@@ -55,10 +55,10 @@ stop(_Pid) ->
         erlchat_store:stop().
 
 topic_validation_tests(_Pid) ->
-         ?assertMatch({error, invalid_data}, erlchat_store:add_topic([12, 13], <<"subj">>)),
-         ?assertMatch({error, invalid_data}, erlchat_store:add_topic(1234, <<"subj">>)),
-         ?assertMatch({error, invalid_data}, erlchat_store:add_topic([<<"user1">>], <<"subj">>)),
-         ?assertMatch({error, invalid_data}, erlchat_store:add_topic([], <<"subj">>)).
+        ?assertMatch({error, invalid_data}, erlchat_store:add_topic([12, 13], <<"subj">>)),
+        ?assertMatch({error, invalid_data}, erlchat_store:add_topic(1234, <<"subj">>)),
+        ?assertMatch({error, invalid_data}, erlchat_store:add_topic([<<"user1">>], <<"subj">>)),
+        ?assertMatch({error, invalid_data}, erlchat_store:add_topic([], <<"subj">>)).
 
 add_topic_test(_Pid) ->
         Users = [<<"user1">>, <<"user2">>],
@@ -76,12 +76,13 @@ get_topic_test(_Pid) ->
         ?assertMatch(Topic, Topic1).
 
 add_message_test(_Pid) ->
-        Sender = <<"user1">>,
-        TopicId = <<"topic1">>,
+        User1 = <<"user1">>,
+        User2 = <<"user2">>,
         Text = <<"hey there">>,
-        {created, Message} = erlchat_store:add_message(Sender, TopicId, Text),
-        ?assertMatch(#erlchat_message { sender = Sender,
-                                        topic_id = TopicId,
+        {created, Topic} = erlchat_store:add_topic([User1, User2], <<"subj">>),
+        {created, {Message, MessageAcks}} = erlchat_store:add_message(User1, Topic#erlchat_topic.id, Text),
+        ?assertMatch(#erlchat_message { sender = User1,
+                                        topic_id = Topic#erlchat_topic.id,
                                         text = Text }, Message).
 
 get_message_test(_Pid) ->
