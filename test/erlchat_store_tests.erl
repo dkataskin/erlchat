@@ -43,8 +43,7 @@ all_test_() ->
                fun add_topic_test/1,
                fun get_topic_test/1,
                fun add_message_test/1,
-               fun get_message_test/1,
-               fun add_message_ack_test/1]
+               fun get_message_test/1]
             }
           end}.
 
@@ -89,20 +88,3 @@ get_message_test(_Pid) ->
         {created, Message} = erlchat_store:add_message(<<"user1">>, <<"topic1">>, <<"hey there">>),
         {ok, Message1} = erlchat_store:get_message(Message#erlchat_message.id),
         ?assertMatch(Message, Message1).
-
-add_message_ack_test(_Pid) ->
-        Sender = <<"user1">>,
-        TopicId = <<"topic1">>,
-        MessageId = <<"message1">>,
-        {created, MessageAck} = erlchat_store:add_message_ack(Sender, MessageId, TopicId),
-        ?assertMatch(#erlchat_message_ack { message_id = MessageId,
-                                            topic_id = TopicId,
-                                            user_id = Sender}, MessageAck).
-
-get_message_ack_test(_Pid) ->
-        Sender = <<"user1">>,
-        TopicId = <<"topic1">>,
-        MessageId = <<"message1">>,
-        {created, _MessageAck} = erlchat_store:add_message_ack(Sender, MessageId, TopicId),
-        {ok, MessageAcks} = erlchat_store:get_message_acks(Sender, TopicId),
-        ?assertMatch([], MessageAcks).
