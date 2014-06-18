@@ -40,7 +40,7 @@
 -export([add_user/2, get_user/1]).
 -export([add_topic/2, get_topic/1]).
 -export([add_message/3, get_message/1]).
--export([add_message_ack/3, get_message_acks/2]).
+-export([get_message_acks/2]).
 
 start_link(Args) when is_list(Args) ->
         case proplists:get_value(?store_type_key, Args) of
