@@ -67,11 +67,11 @@ add_message(Sender, TopicId, Text) ->
 get_message(MessageId) ->
         gen_server:call(?store_server, {get_message, MessageId}).
 
-add_message_ack(Sender, MessageId, TopicId) ->
-        MessageAck = #erlchat_message_ack { message_id = MessageId,
-                                            topic_id = TopicId,
-                                            user_id = Sender },
-        execute_if_valid(MessageAck, fun() -> gen_server:call(?store_server, {add_message_ack, MessageAck}) end).
+%add_message_ack(Sender, MessageId, TopicId) ->
+%        MessageAck = #erlchat_message_ack { message_id = MessageId,
+%                                            topic_id = TopicId,
+%                                            user_id = Sender },
+%        execute_if_valid(MessageAck, fun() -> gen_server:call(?store_server, {add_message_ack, MessageAck}) end).
 
 get_message_acks(Sender, TopicId) ->
         gen_server:call(?store_server, {get_message_acks, {Sender, TopicId}}).
@@ -101,10 +101,10 @@ is_valid(Message=#erlchat_message{}) ->
         is_valid_id(Message#erlchat_message.topic_id) andalso
         is_valid_string(Message#erlchat_message.text);
 
-is_valid(MessageAck=#erlchat_message_ack{}) ->
-        is_valid_id(MessageAck#erlchat_message_ack.message_id) andalso
-        is_valid_id(MessageAck#erlchat_message_ack.topic_id) andalso
-        is_valid_id(MessageAck#erlchat_message_ack.user_id);
+%is_valid(MessageAck=#erlchat_message_ack{}) ->
+%        is_valid_id(MessageAck#erlchat_message_ack.message_id) andalso
+%        is_valid_id(MessageAck#erlchat_message_ack.topic_id) andalso
+%        is_valid_id(MessageAck#erlchat_message_ack.user_id);
 
 is_valid(User=#erlchat_user{}) ->
         is_valid_string(User#erlchat_user.nickname).
