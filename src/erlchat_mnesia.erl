@@ -156,7 +156,7 @@ add_topic(Topic=#erlchat_topic{}) ->
         Topic1.
 
 get_topic(TopicId) ->
-        find_single(TopicId, ?topics_table).
+        find_single_tr(TopicId, ?topics_table).
 
 add_message(Message=#erlchat_message{ topic_id = TopicId }) ->
         Message1 = Message#erlchat_message { id = erlchat_utils:generate_uuid() },

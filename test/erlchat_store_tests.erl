@@ -80,9 +80,10 @@ add_message_test(_Pid) ->
         User2 = <<"user2">>,
         Text = <<"hey there">>,
         {created, Topic} = erlchat_store:add_topic([User1, User2], <<"subj">>),
-        {created, {Message, MessageAcks}} = erlchat_store:add_message(User1, Topic#erlchat_topic.id, Text),
+        TopicId = Topic#erlchat_topic.id,
+        {created, {Message, MessageAcks}} = erlchat_store:add_message(User1, TopicId, Text),
         ?assertMatch(#erlchat_message { sender = User1,
-                                        topic_id = Topic#erlchat_topic.id,
+                                        topic_id = TopicId,
                                         text = Text }, Message).
 
 get_message_test(_Pid) ->
