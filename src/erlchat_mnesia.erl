@@ -162,20 +162,26 @@ add_topic(Topic=#erlchat_topic{}) ->
 get_topic(TopicId) ->
         find_single_tr(TopicId, ?topics_table).
 
-add_message(Message=#erlchat_message{ topic_id = TopicId }) ->
+add_message(Message=#erlchat_message{ sender = Sender, topic_id = TopicId }) ->
         Message1 = Message#erlchat_message { id = erlchat_utils:generate_uuid() },
         Fun = fun() ->
                 case find_single(TopicId, ?topics_table) of
                   {ok, Topic} ->
-                    MapFun = fun(UserId) -> #erlchat_message_ack { id = erlchat_utils:generate_uuid(),
-                                                                   message_id = Message1#erlchat_message.id,
-                                                                   topic_id = TopicId,
-                                                                   user_id = UserId }
-                             end,
-                    MessageAcks = lists:map(MapFun, Topic#erlchat_topic.users),
-                    mnesia:write(Message1),
-                    lists:foreach(fun(MessageAck) -> mnesia:write(MessageAck) end, MessageAcks),
-                    {ok, {Message1, MessageAcks}};
+                    case lists:any(fun(UserId) -> UserId =:= Sender end, Topic#erlchat_topic.users) of
+                      true ->
+                        MapFun = fun(UserId) -> #erlchat_message_ack { id = erlchat_utils:generate_uuid(),
+                                                                       message_id = Message1#erlchat_message.id,
+                                                                       topic_id = TopicId,
+                                                                       user_id = UserId }
+                                 end,
+                        MessageAcks = lists:map(MapFun, Topic#erlchat_topic.users),
+                        mnesia:write(Message1),
+                        lists:foreach(fun(MessageAck) -> mnesia:write(MessageAck) end, MessageAcks),
+                        {ok, {Message1, MessageAcks}};
+
+                      false ->
+                        {error, {user_out_of_topic, Sender}}
+                    end;
 
                   {error, not_found} ->
                     {error, {topic_doesnt_exist, TopicId}}
