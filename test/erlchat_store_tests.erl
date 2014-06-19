@@ -78,15 +78,31 @@ get_topic_test(_Pid) ->
 add_message_test(_Pid) ->
         User1 = <<"user1">>,
         User2 = <<"user2">>,
+        Users = [User1, User2],
         Text = <<"hey there">>,
-        {created, Topic} = erlchat_store:add_topic([User1, User2], <<"subj">>),
+        {created, Topic} = erlchat_store:add_topic(Users, <<"subj">>),
         TopicId = Topic#erlchat_topic.id,
         {created, {Message, MessageAcks}} = erlchat_store:add_message(User1, TopicId, Text),
+        MessageId = Message#erlchat_message.id,
         ?assertMatch(#erlchat_message { sender = User1,
                                         topic_id = TopicId,
-                                        text = Text }, Message).
+                                        text = Text }, Message),
+
+        Length = lists:flatlength(MessageAcks),
+        ?assertMatch(Length, lists:flatlength(Users)),
+
+        lists:foreach(fun(MessageAck) ->
+                        ?assertNotMatch(<<>>, MessageAck#erlchat_message_ack.id),
+                        ?assertMatch(MessageId, MessageAck#erlchat_message_ack.message_id),
+                        ?assertMatch(TopicId, MessageAck#erlchat_message_ack.topic_id),
+                        ?assert(lists:any(fun(UserId) ->
+                                            MessageAck#erlchat_message_ack.user_id =:= UserId
+                                          end, Users))
+                      end, MessageAcks).
 
 get_message_test(_Pid) ->
-        {created, Message} = erlchat_store:add_message(<<"user1">>, <<"topic1">>, <<"hey there">>),
+        User1 = <<"user1">>,
+        {created, Topic} = erlchat_store:add_topic([User1, <<"user2">>], <<"subj">>),
+        {created, {Message, _}} = erlchat_store:add_message(User1, Topic#erlchat_topic.id, <<"hey there">>),
         {ok, Message1} = erlchat_store:get_message(Message#erlchat_message.id),
         ?assertMatch(Message, Message1).
