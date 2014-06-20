@@ -40,7 +40,7 @@
 -export([add_user/2, get_user/1]).
 -export([add_topic/2, get_topic/1]).
 -export([add_message/3, get_message/1]).
--export([get_message_acks/2]).
+-export([get_message_ack/1, get_message_acks/2, delete_message_ack/1]).
 
 start_link(Args) when is_list(Args) ->
         case proplists:get_value(?store_type_key, Args) of
@@ -67,14 +67,14 @@ add_message(Sender, TopicId, Text) ->
 get_message(MessageId) ->
         gen_server:call(?store_server, {get_message, MessageId}).
 
-%add_message_ack(Sender, MessageId, TopicId) ->
-%        MessageAck = #erlchat_message_ack { message_id = MessageId,
-%                                            topic_id = TopicId,
-%                                            user_id = Sender },
-%        execute_if_valid(MessageAck, fun() -> gen_server:call(?store_server, {add_message_ack, MessageAck}) end).
+get_message_ack(MessageAckId) ->
+        gen_server:call(?store_server, {get_message_ack, MessageAckId}).
 
 get_message_acks(Sender, TopicId) ->
         gen_server:call(?store_server, {get_message_acks, {Sender, TopicId}}).
+
+delete_message_ack(MessageAckId) ->
+        gen_server:call(?store_server, {delete_message_ack, MessageAckId}).
 
 add_user(Nickname, Avatar) ->
         User = #erlchat_user{ nickname = Nickname, avatar = Avatar },

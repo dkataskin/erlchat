@@ -91,9 +91,16 @@ handle_call({add_message_ack, MessageAck=#erlchat_message_ack{}}, _From, State) 
         MessageAck1 = add_message_ack(MessageAck),
         {reply, {created, MessageAck1}, State};
 
+handle_call({get_message_ack, MessageAckId}, _From, State) ->
+        {reply, find_single_tr(?messages_ack_table, MessageAckId), State};
+
 handle_call({get_message_acks, {Sender, TopicId}}, _From, State) ->
         MessageAcks = get_message_acks(Sender, TopicId),
         {reply, {ok, MessageAcks}, State};
+
+handle_call({delete_message_ack, MessageAckId}, _From, State) ->
+        ok = delete_message_ack(MessageAckId),
+        {reply, {ok, deleted}, State};
 
 handle_call(stop, _From, State) ->
         {stop, normal, shutdown_ok, State}.
@@ -160,12 +167,12 @@ add_topic(Topic=#erlchat_topic{}) ->
         Topic1.
 
 get_topic(TopicId) ->
-        find_single_tr(TopicId, ?topics_table).
+        find_single_tr(?topics_table, TopicId).
 
 add_message(Message=#erlchat_message{ sender = Sender, topic_id = TopicId }) ->
         Message1 = Message#erlchat_message { id = erlchat_utils:generate_uuid() },
         Fun = fun() ->
-                case find_single(TopicId, ?topics_table) of
+                case find_single(?topics_table, TopicId) of
                   {ok, Topic} ->
                     case lists:any(fun(UserId) -> UserId =:= Sender end, Topic#erlchat_topic.users) of
                       true ->
@@ -190,7 +197,7 @@ add_message(Message=#erlchat_message{ sender = Sender, topic_id = TopicId }) ->
         mnesia:activity(transaction, Fun).
 
 get_message(MessageId) ->
-        find_single_tr(MessageId, ?messages_table).
+        find_single_tr(?messages_table, MessageId).
 
 add_message_ack(MessageAck=#erlchat_message_ack{}) ->
         MessageAck1 = MessageAck#erlchat_message_ack { id = erlchat_utils:generate_uuid() },
@@ -200,10 +207,13 @@ add_message_ack(MessageAck=#erlchat_message_ack{}) ->
 get_message_acks(UserId, TopicId) ->
         [].
 
-find_single_tr(Id, Table) ->
-        mnesia:activity(transaction, fun() -> find_single(Id, Table) end).
+delete_message_ack(MessageAckId) ->
+        mnesia:activity(transaction, fun() -> mnesia:delete({?messages_ack_table, MessageAckId}) end).
 
-find_single(Id, Table) ->
+find_single_tr(Table, Id) ->
+        mnesia:activity(transaction, fun() -> find_single(Table, Id) end).
+
+find_single(Table, Id) ->
         case mnesia:read({Table, Id}) of
           [Record] ->
             {ok, Record};
