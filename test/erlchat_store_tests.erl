@@ -43,7 +43,9 @@ all_test_() ->
                fun add_topic_test/1,
                fun get_topic_test/1,
                fun add_message_test/1,
-               fun get_message_test/1]
+               fun get_message_test/1,
+               fun get_message_ack_test/1,
+               fun delete_message_ack_test/1]
             }
           end}.
 
@@ -76,12 +78,9 @@ get_topic_test(_Pid) ->
         ?assertMatch(Topic, Topic1).
 
 add_message_test(_Pid) ->
-        User1 = <<"user1">>,
-        User2 = <<"user2">>,
-        Users = [User1, User2],
+        {Users, TopicId} = create_test_topic(),
+        [User1|_] = Users,
         Text = <<"hey there">>,
-        {created, Topic} = erlchat_store:add_topic(Users, <<"subj">>),
-        TopicId = Topic#erlchat_topic.id,
         {created, {Message, MessageAcks}} = erlchat_store:add_message(User1, TopicId, Text),
         MessageId = Message#erlchat_message.id,
         ?assertMatch(#erlchat_message { sender = User1,
@@ -100,9 +99,32 @@ add_message_test(_Pid) ->
                                           end, Users))
                       end, MessageAcks).
 
+get_message_ack_test(_Pid) ->
+        {[User1, _], TopicId} = create_test_topic(),
+        {created, {_Message, MessageAcks}} = erlchat_store:add_message(User1, TopicId, <<"hey there">>),
+        [MessageAck|_T] = MessageAcks,
+        {ok, Retrieved} = erlchat_store:get_message_ack(MessageAck#erlchat_message_ack.id),
+        ?assertMatch(MessageAck, Retrieved).
+
+delete_message_ack_test(_Pid) ->
+        {[User1, _], TopicId} = create_test_topic(),
+        {created, {_Message, MessageAcks}} = erlchat_store:add_message(User1, TopicId, <<"hey there">>),
+        [MessageAck|_T] = MessageAcks,
+        Response = erlchat_store:delete_message_ack(MessageAck#erlchat_message_ack.id),
+        ?assertMatch({ok, deleted}, Response),
+        Response1 = erlchat_store:get_message_ack(MessageAck#erlchat_message_ack.id),
+        ?assertMatch({error, not_found}, Response1).
+
 get_message_test(_Pid) ->
         User1 = <<"user1">>,
         {created, Topic} = erlchat_store:add_topic([User1, <<"user2">>], <<"subj">>),
         {created, {Message, _}} = erlchat_store:add_message(User1, Topic#erlchat_topic.id, <<"hey there">>),
         {ok, Message1} = erlchat_store:get_message(Message#erlchat_message.id),
         ?assertMatch(Message, Message1).
+
+create_test_topic() ->
+        User1 = <<"user1">>,
+        User2 = <<"user2">>,
+        {created, Topic} = erlchat_store:add_topic([User1, User2], <<"subj">>),
+        TopicId = Topic#erlchat_topic.id,
+        {[User1, User2], TopicId}.
