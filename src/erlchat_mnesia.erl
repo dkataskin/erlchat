@@ -37,6 +37,7 @@
 -define(erlchat_mnesia_tables, [?users_table, ?topics_table, ?messages_table, ?messages_ack_table]).
 
 -include("erlchat.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
 
 -behaviour(gen_server).
 
@@ -205,7 +206,13 @@ add_message_ack(MessageAck=#erlchat_message_ack{}) ->
         MessageAck1.
 
 get_message_acks(UserId, TopicId) ->
-        [].
+        Match = ets:fun2ms(fun(MessageAck=#erlchat_message_ack { user_id = AckUserId,
+                                                                topic_id = AckTopicId})
+                           when AckUserId =:= UserId andalso AckTopicId =:= TopicId ->
+                            MessageAck
+                           end),
+        mnesia:activity(transaction, fun() -> mnesia:select(?messages_ack_table, Match) end).
+
 
 delete_message_ack(MessageAckId) ->
         mnesia:activity(transaction, fun() -> mnesia:delete({?messages_ack_table, MessageAckId}) end).

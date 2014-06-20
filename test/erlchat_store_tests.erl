@@ -45,6 +45,7 @@ all_test_() ->
                fun add_message_test/1,
                fun get_message_test/1,
                fun get_message_ack_test/1,
+               fun get_message_acks_test/1,
                fun delete_message_ack_test/1]
             }
           end}.
@@ -114,6 +115,15 @@ delete_message_ack_test(_Pid) ->
         ?assertMatch({ok, deleted}, Response),
         Response1 = erlchat_store:get_message_ack(MessageAck#erlchat_message_ack.id),
         ?assertMatch({error, not_found}, Response1).
+
+get_message_acks_test(_Pid) ->
+        {[User1, _], TopicId} = create_test_topic(),
+        {created, {_Message, MessageAcks}} = erlchat_store:add_message(User1, TopicId, <<"hey there">>),
+        [MessageAck|_T] = MessageAcks,
+        Response = erlchat_store:get_message_acks(User1, TopicId),
+        ?assertMatch({ok, [_]}, Response),
+        {ok, [FoundMessageAck]} = Response,
+        ?assertMatch(MessageAck, FoundMessageAck).
 
 get_message_test(_Pid) ->
         User1 = <<"user1">>,
