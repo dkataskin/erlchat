@@ -34,7 +34,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start/0, start_link/0, get_events/1]).
+-export([start_link/0, get_events/1]).
 
 %% gen_serve callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -43,11 +43,12 @@
 start_link() ->
         gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-start() ->
-        gen_server:start({local, ?MODULE}, ?MODULE, [], []).
-
 get_events(SessionId) ->
         gen_server:call({local, ?MODULE}, {get_events, SessionId}).
+
+start_topic(SessionId, Users, Subject, Text) -> ok.
+
+send_message(SessionId, TopicId, Text) -> ok.
 
 %% gen_serve callbacks
 init(_Args) ->
