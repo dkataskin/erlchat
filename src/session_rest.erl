@@ -90,10 +90,10 @@ delete_resource(Req, State) ->
 init_session(Req, State) ->
         {ok, Body, Req1} = cowboy_req:body_qs(Req),
         case parse_session(Body, Req1, State) of
-          {ok, {SessionId, UserId}} ->
+          {ok, UserId} ->
             case cowboy_req:method(Req1) of
               {<<"POST">>, Req2} ->
-                {initiated, Session} = erlchat_sessions:init_session(UserId, SessionId),
+                {initiated, Session} = erlchat_sessions:init_session(UserId),
                 Req3 = cowboy_req:set_resp_body(session_to_json(Session), Req2),
                 {true, Req3, State};
 
@@ -130,8 +130,8 @@ parse_session([{Body, true}], Req, State) ->
           true ->
             Session = jsx:decode(Body),
             case Session of
-              [{<<"user_id">>, UserId}, {<<"session_id">>, SessionId}] ->
-                {ok, {SessionId, UserId}};
+              [{<<"user_id">>, UserId}] ->
+                {ok, UserId};
 
               _ ->
                 {error, error_response(bad_request, ?input_not_session, Req, State)}

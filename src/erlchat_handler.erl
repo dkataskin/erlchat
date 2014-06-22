@@ -36,7 +36,15 @@
 
 init(_Transport, Req, _Opts, _Active) ->
             io:format("erlchat handler init~n"),
-            {ok, Req, undefined_state}.
+            Req2 = case cowboy_req:cookie(<<"erlchat_session_id">>, Req) of
+              {undefined, Req1} ->
+                io:format("no cookie~n"),
+                Req1;
+              {SessionId, Req1} ->
+                io:format("session id: ~p~n", [SessionId]),
+                Req1
+            end,
+            {ok, Req2, undefined_state}.
 
 stream(<<"ping: ", Name/binary>>, Req, State) ->
             io:format("ping ~p received~n", [Name]),

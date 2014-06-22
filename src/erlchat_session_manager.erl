@@ -34,7 +34,10 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, get_events/1]).
+-export([start_link/0]).
+-export([get_events/1]).
+-export([start_topic/4]).
+-export([send_message/3]).
 
 %% gen_serve callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -46,9 +49,11 @@ start_link() ->
 get_events(SessionId) ->
         gen_server:call({local, ?MODULE}, {get_events, SessionId}).
 
-start_topic(SessionId, Users, Subject, Text) -> ok.
+start_topic(SessionId, Users, Subject, Text) ->
+        ok.
 
-send_message(SessionId, TopicId, Text) -> ok.
+send_message(SessionId, TopicId, Text) ->
+        ok.
 
 %% gen_serve callbacks
 init(_Args) ->
@@ -60,7 +65,7 @@ handle_call({get_events, SessionId}, _From, State) ->
         {reply, [], State}.
 
 handle_cast(Request, State) ->
-        erlang:error(not_implemented).
+        {noreply, state}.
 
 handle_info(Info, State) ->
         erlang:error(not_implemented).
