@@ -45,8 +45,8 @@ start(_Type, _Args) ->
             static_files("css"),
             static_files("img"),
             {"/", toppage_handler, []},
-            {"/sample", sample_handler, []},
-            {"/session/[:session_id]", session_rest, [{auth_token, AuthToken}]},
+            {"/sample", erlchat_sample_handler, []},
+            {"/session/[:session_id]", erlchat_session_rest, [{auth_token, AuthToken}]},
             {"/erlchat", bullet_handler, [{handler, erlchat_handler}]}
           ]}
         ]),
