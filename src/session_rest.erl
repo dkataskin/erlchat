@@ -52,7 +52,7 @@ init(_Transport, Req, Opts) ->
 
 rest_init(Req, Opts) ->
         case lists:keyfind(auth_token, 1, Opts) of
-          false ->
+          {auth_token, undefined} ->
             {ok, Req, no_state};
           {auth_token, AuthToken} ->
             {ok, Req, #session_rest { auth_token = AuthToken }}
