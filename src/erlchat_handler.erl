@@ -35,35 +35,47 @@
 -export([terminate/2]).
 
 init(_Transport, Req, _Opts, _Active) ->
-            io:format("erlchat handler init~n"),
-            Req2 = case cowboy_req:cookie(<<"erlchat_session_id">>, Req) of
-              {undefined, Req1} ->
-                io:format("no cookie~n"),
-                Req1;
-              {SessionId, Req1} ->
-                io:format("session id: ~p~n", [SessionId]),
-                Req1
-            end,
-            {ok, Req2, undefined_state}.
+        case is_session_valid(Req) of
+          {{error, _Reason}, Req1} ->
+            {shutdown, Req1, undefined_state};
+
+          {{ok, Session}, Req1} ->
+            {ok, Req1, Session}
+        end.
 
 stream(<<"ping: ", Name/binary>>, Req, State) ->
-            io:format("ping ~p received~n", [Name]),
-            {reply, <<"pong">>, Req, State};
+        io:format("ping ~p received~n", [Name]),
+        {reply, <<"pong">>, Req, State};
 
 stream(Data, Req, State) ->
-            case jsx:is_json(Data) of
-              true ->
-                io:format("stream received valid json ~s~n", [Data]),
-                {ok, Req, State};
-              false ->
-                io:format("stream received something ~s~n", [Data]),
-                {ok, Req, State}
-            end.
+        case jsx:is_json(Data) of
+          true ->
+            io:format("stream received valid json ~s~n", [Data]),
+            {ok, Req, State};
+          false ->
+            io:format("stream received something ~s~n", [Data]),
+            {ok, Req, State}
+        end.
 
 info(Info, Req, State) ->
-            io:format("info received ~p~n", [Info]),
-            {ok, Req, State}.
+        io:format("info received ~p~n", [Info]),
+        {ok, Req, State}.
 
 terminate(_Req, _State) ->
-            io:format("bullet terminate~n"),
-            ok.
+        io:format("bullet terminate~n"),
+        ok.
+
+is_session_valid(Req) ->
+        case cowboy_req:cookie(<<"erlchat_session_id">>, Req) of
+          {undefined, Req1} ->
+            {{error, no_cookie}, Req1};
+
+          {SessionId, Req1} ->
+            case erlchat_sessions:get_session(SessionId) of
+              {error, not_found} ->
+                {{error, no_session}, Req1};
+
+              {ok, Session} ->
+                {{ok, Session}, Req1}
+            end
+         end.
