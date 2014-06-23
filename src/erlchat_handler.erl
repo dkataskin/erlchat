@@ -64,7 +64,6 @@ info(Info, Req, State) ->
             io:format("info received ~p~n", [Info]),
             {ok, Req, State}.
 
-terminate(_Req, TRef) ->
+terminate(_Req, _State) ->
             io:format("bullet terminate~n"),
-            erlang:cancel_timer(TRef),
             ok.

@@ -24,7 +24,7 @@
                   }
                 }
 
-                document.cookie = "erlchat_session_id=12345";
+                //document.cookie = "erlchat_session_id=12345";
                 var erlchat = window.erlchat = $.erlchat(session, 'ws://localhost:8085/erlchat');
                 erlchat.onopen = function(){
                     $("#status").text("status: connected");

@@ -122,10 +122,10 @@ delete_session(SessionId, Req, State) ->
         {ok, terminated} = erlchat_sessions:terminate_session(SessionId),
         {true, Req, State}.
 
-parse_session([], Req, State) ->
-        {error, error_response(bad_request, ?input_not_json, Req, State)};
-
 parse_session([{Body, true}], Req, State) ->
+        parse_session(Body, Req, State);
+
+parse_session(Body, Req, State) ->
         case jsx:is_json(Body) of
           true ->
             Session = jsx:decode(Body),
@@ -139,7 +139,7 @@ parse_session([{Body, true}], Req, State) ->
 
           false ->
             {error, error_response(bad_request, ?input_not_json, Req, State)}
-        end;
+          end;
 
 parse_session(_, Req, State) ->
         {error, error_response(bad_request, ?input_not_json, Req, State)}.

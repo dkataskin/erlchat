@@ -28,7 +28,7 @@
 
 -module(erlchat).
 
--define(apps, [crypto, ranch, cowlib, cowboy, sync, erlchat]).
+-define(apps, [crypto, inets, ranch, cowlib, cowboy, sync, erlchat]).
 -author("Dmitry Kataskin").
 
 -export([start/0, stop/0]).

@@ -37,10 +37,13 @@ init(_Transport, Req, []) ->
         {ok, Req, undefined}.
 
 handle(Req, State) ->
-        %httpc:request(post, "http://localhost:8085/session"),
+        ReqBody = jsx:encode([{user_id, <<"04fc76155306762bcec734ce0ab3a52e">>}]),
+        {ok, {_, _, Body}} = httpc:request(post, {"http://localhost:8085/session", [], "application/json", ReqBody}, [], []),
+        [_Status, _User, {<<"session_id">>, SessionId}] = jsx:decode(list_to_binary(Body)),
         {ok, HTML} = sample_dtl:render([]),
-        {ok, Req1} = cowboy_req:reply(200, [], HTML, Req),
-        {ok, Req1, State}.
+        Req1 = cowboy_req:set_resp_cookie(<<"erlchat_session_id">>, SessionId, [], Req),
+        {ok, Req2} = cowboy_req:reply(200, [], HTML, Req1),
+        {ok, Req2, State}.
 
 terminate(_Reason, _Req, _State) ->
         ok.
