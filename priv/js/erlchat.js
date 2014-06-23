@@ -369,7 +369,7 @@
 
         bullet.onheartbeat = function(){
                                 console.log('ping');
-                                bullet.send('ping: ' + session.id);
+                                bullet.send('ping: ' + session);
 
                                 self.onheartbeat();
         };
@@ -378,7 +378,7 @@
 
         self.send = function(userId, text) {
             if (text && self.session && userId){
-                bullet.send($.toJSON({ sessionId: self.session.id,
+                bullet.send($.toJSON({ sessionId: self.session,
                                        userId: userId,
                                        text: text }));
             }
