@@ -14,18 +14,7 @@
     <body>
         <script type="text/javascript">
             $(document).ready(function(){
-
-                var session = {
-                  id:"MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
-                  user: {
-                    id: 23434,
-                    name: "Ivan Slizka",
-                    nick: "islizka"
-                  }
-                }
-
-                //document.cookie = "erlchat_session_id=12345";
-                var erlchat = window.erlchat = $.erlchat(session, 'ws://localhost:8085/erlchat');
+                var erlchat = window.erlchat = $.erlchat('ws://localhost:8085/erlchat');
                 erlchat.onopen = function(){
                     $("#status").text("status: connected");
                 };

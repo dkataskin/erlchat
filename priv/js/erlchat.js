@@ -342,21 +342,12 @@
      OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-//
-// session = { id:"MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=",
-//             user: {
-//                id: 23434,
-//                name: "Dmitry Kataskin",
-//                nick: "kotoff"
-//             }
-//           }
-//
 // address ws://localhost:8085/erlchat
-(function ($){$.extend({erlchat: function(session, address){
+(function ($){$.extend({erlchat: function(address){
     var stream = new function(){
         var self = this;
 
-        self.session = session;
+        self.session = document.cookie.replace(/(?:(?:^|.*;\s*) erlchat_session_id\s*\=\s*([^;]*).*$)|^.*$/, "$1");
         self.address = address;
 
         self.onopen = function(){};
