@@ -34,25 +34,24 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0]).
--export([get_events/1]).
--export([start_topic/4]).
--export([send_message/3]).
+-export([start_link/1, stop/1]).
+-export([start_topic/5]).
+-export([send_message/4]).
 
 %% gen_serve callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 %% API
-start_link() ->
-        gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(SessionId) ->
+        gen_server:start_link(?MODULE, [], []).
 
-get_events(SessionId) ->
-        gen_server:call({local, ?MODULE}, {get_events, SessionId}).
+stop(Pid) ->
+        gen_server:call(Pid, stop).
 
-start_topic(SessionId, Users, Subject, Text) ->
+start_topic(Pid, SessionId, Users, Subject, Text) ->
         ok.
 
-send_message(SessionId, TopicId, Text) ->
+send_message(Pid, SessionId, TopicId, Text) ->
         ok.
 
 %% gen_serve callbacks
@@ -62,7 +61,10 @@ init(_Args) ->
 handle_call({get_events, SessionId}, _From, State) ->
         Session = erlchat_sessions:get_session(SessionId),
         Sessions = erlchat_sessions:get_user_sessions(Session#erlchat_session.user_id),
-        {reply, [], State}.
+        {reply, [], State};
+
+handle_call(stop, _From, State) ->
+        {stop, State}.
 
 handle_cast(Request, State) ->
         {noreply, state}.

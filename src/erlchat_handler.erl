@@ -36,8 +36,8 @@
 
 init(_Transport, Req, _Opts, _Active) ->
         case is_session_valid(Req) of
-          {{error, _Reason}, Req1} ->
-            {shutdown, Req1, undefined_state};
+          {{error, Reason}, Req1} ->
+            {shutdown, Req1, Reason};
 
           {{ok, Session}, Req1} ->
             {ok, Req1, Session}
