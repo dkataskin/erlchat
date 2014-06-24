@@ -26,54 +26,48 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(erlchat_session_manager).
+-module(erlchat_session_mgr).
 -author("Dmitry Kataskin").
-
--include("erlchat.hrl").
 
 -behaviour(gen_server).
 
-%% API
--export([start_link/1, stop/1]).
--export([start_topic/5]).
--export([send_message/4]).
+% API
+-export([start_link/0, stop/0]).
+-export([reg_sub_session/1]).
 
-%% gen_serve callbacks
+% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
-%% API
-start_link(SessionId) ->
-        gen_server:start_link(?MODULE, [], []).
+% API
+start_link() ->
+        gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-stop(Pid) ->
-        gen_server:call(Pid, stop).
+stop() ->
+        gen_server:call(?MODULE, stop).
 
-start_topic(Pid, SessionId, Users, Subject, Text) ->
-        ok.
+reg_sub_session(SessionId) ->
+        gen_server:call(?MODULE, {reg_sub_session, SessionId}).
 
-send_message(Pid, SessionId, TopicId, Text) ->
-        ok.
-
-%% gen_serve callbacks
+% gen_server callbacks
 init(_Args) ->
         {ok, no_state}.
 
-handle_call({get_events, SessionId}, _From, State) ->
-        Session = erlchat_sessions:get_session(SessionId),
-        Sessions = erlchat_sessions:get_user_sessions(Session#erlchat_session.user_id),
-        {reply, [], State};
+handle_call({reg_sub_session, SessionId}, From, State) ->
+        SessionPid = case gproc:lookup_local_name(SessionId) of
+                      undefined -> erlchat_session:start_link(SessionId);
+                      Pid -> Pid
+                     end,
+        erlchat_session:reg_sub_session(SessionPid, From),
+        {reply, {ok, SessionPid}, State}.
 
-handle_call(stop, _From, State) ->
-        {stop, State}.
+handle_cast(_Request, State) ->
+        {noreply, State}.
 
-handle_cast(Request, State) ->
-        {noreply, state}.
+handle_info(_Info, State) ->
+        {noreply, State}.
 
-handle_info(Info, State) ->
-        erlang:error(not_implemented).
+terminate(_Reason, _State) ->
+        ok.
 
-terminate(Reason, State) ->
-        erlang:error(not_implemented).
-
-code_change(OldVsn, State, Extra) ->
-        erlang:error(not_implemented).
+code_change(_OldVsn, State, _Extra) ->
+        {ok, State}.

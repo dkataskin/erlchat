@@ -26,37 +26,61 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(erlchat).
-
--define(apps, [crypto, inets, ranch, cowlib, cowboy, gproc, sync, erlchat]).
+-module(erlchat_session).
 -author("Dmitry Kataskin").
 
--export([start/0, stop/0]).
+-include("erlchat.hrl").
 
-start() ->
-        all_started = ensure_started(?apps),
+-record(session_state, { id = <<>>, handlers = []}).
+
+-behaviour(gen_server).
+
+%% API
+-export([start_link/1, stop/1]).
+-export([reg_sub_session/2]).
+-export([start_topic/4]).
+-export([send_message/3]).
+
+%% gen_serve callbacks
+-export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+
+%% API
+start_link(SessionId) ->
+        gen_server:start_link(?MODULE, [SessionId], []).
+
+stop(Pid) ->
+        gen_server:call(Pid, stop).
+
+reg_sub_session(Pid, HandlerPid) ->
+        gen_server:call(Pid, {reg_sub_session, HandlerPid}).
+
+start_topic(Pid, Users, Subject, Text) ->
         ok.
 
-stop() ->
-        all_stopped = ensure_stopped(lists:reverse(?apps)),
+send_message(Pid, TopicId, Text) ->
         ok.
 
-ensure_started([]) ->
-        all_started;
+%% gen_server callbacks
+init([SessionId]) ->
+        gproc:add_local_name(SessionId),
+        {ok, #session_state { id = SessionId, handlers = [] }}.
 
-ensure_started([App|RestOfAppList]) ->
-        case application:start(App) of
-          ok -> started;
-          {error, {already_started, App}} -> started
-        end,
-        ensure_started(RestOfAppList).
+handle_call({reg_sub_session, HandlerPid}, _From, #session_state { handlers = Handlers } = State) ->
+        State1 = State#session_state { handlers = [HandlerPid | Handlers] },
+        io:format("~p registered ~p sub session~n", [self(), HandlerPid]),
+        {reply, [], State1};
 
-ensure_stopped([]) ->
-        all_stopped;
+handle_call(stop, _From, State) ->
+        {stop, normal, State}.
 
-ensure_stopped([App|RestOfAppList]) ->
-        case application:stop(App) of
-          ok -> stopped;
-          {error, {not_started, App}} -> stopped
-        end,
-        ensure_stopped(RestOfAppList).
+handle_cast(_Request, State) ->
+        {noreply, State}.
+
+handle_info(_Info, State) ->
+        {noreply, State}.
+
+terminate(_Reason, _State) ->
+        ok.
+
+code_change(_OldVsn, State, _Extra) ->
+        {ok, State}.

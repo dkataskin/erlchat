@@ -71,7 +71,7 @@ is_session_valid(Req) ->
             {{error, no_cookie}, Req1};
 
           {SessionId, Req1} ->
-            case erlchat_sessions:get_session(SessionId) of
+            case erlchat_session_store:get_session(SessionId) of
               {error, not_found} ->
                 {{error, no_session}, Req1};
 

@@ -11,7 +11,7 @@
 % this list of conditions and the following disclaimer in the documentation
 % and/or other materials provided with the distribution.
 %
-% * Neither the name of the erlchat nor the names of its
+% * Neither the name of the {organization} nor the names of its
 % contributors may be used to endorse or promote products derived from
 % this software without specific prior written permission.
 %
@@ -26,37 +26,8 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(erlchat).
-
--define(apps, [crypto, inets, ranch, cowlib, cowboy, gproc, sync, erlchat]).
+-module(erlchat_session_mgr_tests).
 -author("Dmitry Kataskin").
 
--export([start/0, stop/0]).
-
-start() ->
-        all_started = ensure_started(?apps),
-        ok.
-
-stop() ->
-        all_stopped = ensure_stopped(lists:reverse(?apps)),
-        ok.
-
-ensure_started([]) ->
-        all_started;
-
-ensure_started([App|RestOfAppList]) ->
-        case application:start(App) of
-          ok -> started;
-          {error, {already_started, App}} -> started
-        end,
-        ensure_started(RestOfAppList).
-
-ensure_stopped([]) ->
-        all_stopped;
-
-ensure_stopped([App|RestOfAppList]) ->
-        case application:stop(App) of
-          ok -> stopped;
-          {error, {not_started, App}} -> stopped
-        end,
-        ensure_stopped(RestOfAppList).
+%% API
+-export([]).
