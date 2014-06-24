@@ -54,8 +54,12 @@ init(_Args) ->
 
 handle_call({reg_sub_session, SessionId}, From, State) ->
         SessionPid = case gproc:lookup_local_name(SessionId) of
-                      undefined -> erlchat_session:start_link(SessionId);
-                      Pid -> Pid
+                      undefined ->
+                        {ok, Pid} = erlchat_session:start_link(SessionId),
+                        Pid;
+
+                      Pid ->
+                        Pid
                      end,
         erlchat_session:reg_sub_session(SessionPid, From),
         {reply, {ok, SessionPid}, State}.
