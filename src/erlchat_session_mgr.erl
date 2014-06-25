@@ -34,6 +34,7 @@
 % API
 -export([start_link/0, stop/0]).
 -export([reg_sub_session/1]).
+-export([send_message/3]).
 
 % gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -47,6 +48,9 @@ stop() ->
 
 reg_sub_session(SessionId) ->
         gen_server:call(?MODULE, {reg_sub_session, SessionId}).
+
+send_message(SessionId, TopicId, Text) ->
+        gen_server:call(?MODULE, {send_message, {SessionId, TopicId, Text}}).
 
 % gen_server callbacks
 init(_Args) ->
@@ -62,7 +66,11 @@ handle_call({reg_sub_session, SessionId}, From, State) ->
                         Pid
                      end,
         erlchat_session:reg_sub_session(SessionPid, From),
-        {reply, {ok, SessionPid}, State}.
+        {reply, {ok, SessionPid}, State};
+
+handle_call({send_message, {SessionId, TopicId, Text}}, _From, State) ->
+        SessionPid = gproc:lookup_local_name(SessionId),
+        {reply, ok, State}.
 
 handle_cast(_Request, State) ->
         {noreply, State}.
