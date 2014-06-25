@@ -47,9 +47,11 @@ start_link() ->
 
 init(_Args) ->
         SessionServer = {erlchat_session_server,
-                            {erlchat_sessions, start_link, []}, permanent, 5000, worker, [erlchat_sessions]},
+                            {erlchat_session_store, start_link, []}, permanent, 5000, worker, [erlchat_session_store]},
         Store = {erlchat_store,
-                    {erlchat_store, start_link, [[{type, mnesia}]]}, permanent, 5000, worker, [erlchat_store]},
+                            {erlchat_store, start_link, [[{type, mnesia}]]}, permanent, 5000, worker, [erlchat_store]},
+        SessionMgr = {erlchat_session_mgr,
+                            {erlchat_session_mgr, start_link, []}, permanent, 5000, worker, [erlchat_session_mgr]},
 
-        Procs = [SessionServer, Store],
+        Procs = [SessionServer, SessionMgr, Store],
         {ok, {{one_for_one, 10, 10}, Procs}}.
