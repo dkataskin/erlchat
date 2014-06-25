@@ -47,7 +47,6 @@
 
 -record(erlchat_session, {id = <<"">>,
                           user_id = <<"">>,
-                          events = queue:new(),
                           status = offline,
                           last_seen = undefined}).
 

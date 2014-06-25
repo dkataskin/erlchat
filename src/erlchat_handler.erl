@@ -29,6 +29,8 @@
 -module(erlchat_handler).
 -author("Dmitry Kataskin").
 
+-include("erlchat.hrl").
+
 -export([init/4]).
 -export([stream/3]).
 -export([info/3]).
@@ -40,7 +42,8 @@ init(_Transport, Req, _Opts, _Active) ->
             {shutdown, Req1, Reason};
 
           {{ok, Session}, Req1} ->
-            {ok, Req1, Session}
+            {ok, Pid} = erlchat_session_mgr:reg_sub_session(Session#erlchat_session.id),
+            {ok, Req1, {Session, Pid}}
         end.
 
 stream(<<"ping: ", Name/binary>>, Req, State) ->
@@ -62,7 +65,7 @@ info(Info, Req, State) ->
         {ok, Req, State}.
 
 terminate(_Req, _State) ->
-        io:format("bullet terminate~n"),
+        io:format("erlchat handler terminate~n"),
         ok.
 
 is_session_valid(Req) ->

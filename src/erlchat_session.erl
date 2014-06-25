@@ -37,7 +37,7 @@
 
 %% API
 -export([start_link/1, stop/1]).
--export([reg_sub_session/2]).
+-export([reg_sub_session/2, unreg_sub_session/2]).
 -export([start_topic/4]).
 -export([send_message/3]).
 
@@ -54,21 +54,32 @@ stop(Pid) ->
 reg_sub_session(Pid, HandlerPid) ->
         gen_server:call(Pid, {reg_sub_session, HandlerPid}).
 
+unreg_sub_session(Pid, HandlerPid) ->
+        gen_server:call(Pid, {unreg_sub_session, HandlerPid}).
+
 start_topic(Pid, Users, Subject, Text) ->
-        ok.
+        gen_server:call(Pid, {start_topic, {Users, Subject, Text}}).
 
 send_message(Pid, TopicId, Text) ->
-        ok.
+        gen_server:call(Pid, {send_message, {TopicId, Text}}).
 
 %% gen_server callbacks
 init([SessionId]) ->
         gproc:add_local_name(SessionId),
         {ok, #session_state { id = SessionId, handlers = [] }}.
 
-handle_call({reg_sub_session, HandlerPid}, _From, #session_state { handlers = Handlers } = State) ->
+handle_call({reg_sub_session, HandlerPid}, _From, State=#session_state { handlers = Handlers }) ->
         State1 = State#session_state { handlers = [HandlerPid | Handlers] },
         io:format("~p registered ~p sub session~n", [self(), HandlerPid]),
-        {reply, [], State1};
+        {reply, ok, State1};
+
+handle_call({unreg_sub_session, HandlerPid}, _From, State=#session_state { handlers = Handlers }) ->
+        State1 = State#session_state { handlers = Handlers -- [HandlerPid] },
+        io:format("~p unregistered ~p sub session~n", [self(), HandlerPid]),
+        {reply, ok, State1};
+
+handle_call({start_topic, {Users, Subject, Text}}, _From, State=#session_state{}) ->
+        {reply, ok, State};
 
 handle_call(stop, _From, State) ->
         {stop, normal, State}.
