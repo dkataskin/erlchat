@@ -38,7 +38,7 @@
 %% API
 -export([start_link/1, stop/0]).
 -export([add_user/2, get_user/1]).
--export([add_topic/2, get_topic/1]).
+-export([add_topic/4, get_topic/1]).
 -export([add_message/3, get_message/1]).
 -export([get_message_ack/1, get_message_acks/2, delete_message_ack/1]).
 
@@ -53,16 +53,21 @@ start_link(Args) when is_list(Args) ->
 stop() ->
         gen_server:call(?store_server, stop).
 
-add_topic(Users, Subject) ->
-        Topic = #erlchat_topic{ users = Users, subject = Subject},
-        execute_if_valid(Topic, fun() -> gen_server:call(?store_server, {add_topic, Topic}) end).
+%% TODO: clumsy
+add_topic(TopicStarter, Users, Subject, Text) ->
+        Topic = #erlchat_topic{ users = [TopicStarter | Users],
+                                owner = TopicStarter,
+                                subject = Subject},
+        execute_if_valid(Topic, fun() -> gen_server:call(?store_server, {add_topic, Topic, Text}) end).
 
 get_topic(TopicId) ->
         gen_server:call(?store_server, {get_topic, TopicId}).
 
+%% TODO: clumsy
 add_message(Sender, TopicId, Text) ->
         Message = #erlchat_message { sender = Sender, topic_id = TopicId, text = Text },
-        execute_if_valid(Message, fun() -> gen_server:call(?store_server, {add_message, Message}) end).
+        Fun = fun() -> gen_server:call(?store_server, {add_message, {Sender, TopicId, Text}}) end,
+        execute_if_valid(Message, Fun).
 
 get_message(MessageId) ->
         gen_server:call(?store_server, {get_message, MessageId}).

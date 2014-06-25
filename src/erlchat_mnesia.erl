@@ -73,24 +73,20 @@ handle_call({get_user, Id}, _From, State) ->
 handle_call({get_topic, TopicId}, _From, State) ->
         {reply, get_topic(TopicId), State};
 
-handle_call({add_topic, Topic=#erlchat_topic{}}, _From, State) ->
-        Topic1 = add_topic(Topic),
-        {reply, {created, Topic1}, State};
+handle_call({add_topic, {Owner, Users, Subject, Text}}, _From, State) ->
+        {ok, Resp} = add_topic(Owner, Users, Subject, Text),
+        {reply, {created, Resp}, State};
 
-handle_call({add_message, Message=#erlchat_message{}}, _From, State) ->
-        case add_message(Message) of
-          {ok, Data} ->
-            {reply, {created, Data}, State};
+handle_call({add_message, {Sender, TopicId, Text}}, _From, State) ->
+        case add_message(Sender, TopicId, Text) of
+          {ok, Resp} ->
+            {reply, {created, Resp}, State};
           {error, Error} ->
             {reply, {error, Error}, State}
         end;
 
 handle_call({get_message, MessageId}, _From, State) ->
         {reply, get_message(MessageId), State};
-
-handle_call({add_message_ack, MessageAck=#erlchat_message_ack{}}, _From, State) ->
-        MessageAck1 = add_message_ack(MessageAck),
-        {reply, {created, MessageAck1}, State};
 
 handle_call({get_message_ack, MessageAckId}, _From, State) ->
         {reply, find_single_tr(?messages_ack_table, MessageAckId), State};
@@ -162,30 +158,23 @@ create_tables(Nodes) ->
                                             {type, set}]),
         ok.
 
-add_topic(Topic=#erlchat_topic{}) ->
-        Topic1 = Topic#erlchat_topic{ id = erlchat_utils:generate_uuid() },
-        mnesia:activity(transaction, fun() -> mnesia:write(Topic1) end),
-        Topic1.
+add_topic(Owner, Users, Subject, Text) ->
+        {ok, {Topic, Message, MessageAcks}} = new_topic(Owner, Users, Subject, Text),
+        mnesia:activity(transaction, fun() -> write_topic(Topic, Message, MessageAcks) end),
+        {ok, {Topic, Message, MessageAcks}}.
 
 get_topic(TopicId) ->
         find_single_tr(?topics_table, TopicId).
 
-add_message(Message=#erlchat_message{ sender = Sender, topic_id = TopicId }) ->
-        Message1 = Message#erlchat_message { id = erlchat_utils:generate_uuid() },
+add_message(Sender, TopicId, Text) ->
         Fun = fun() ->
                 case find_single(?topics_table, TopicId) of
                   {ok, Topic} ->
                     case lists:any(fun(UserId) -> UserId =:= Sender end, Topic#erlchat_topic.users) of
                       true ->
-                        MapFun = fun(UserId) -> #erlchat_message_ack { id = erlchat_utils:generate_uuid(),
-                                                                       message_id = Message1#erlchat_message.id,
-                                                                       topic_id = TopicId,
-                                                                       user_id = UserId }
-                                 end,
-                        MessageAcks = lists:map(MapFun, Topic#erlchat_topic.users),
-                        mnesia:write(Message1),
-                        lists:foreach(fun(MessageAck) -> mnesia:write(MessageAck) end, MessageAcks),
-                        {ok, {Message1, MessageAcks}};
+                        {ok, {Message, MessageAcks}} = new_topic_message(Sender, Topic, Text),
+                        ok = write_message(Message, MessageAcks),
+                        {ok, {Message, MessageAcks}};
 
                       false ->
                         {error, {user_out_of_topic, Sender}}
@@ -200,11 +189,6 @@ add_message(Message=#erlchat_message{ sender = Sender, topic_id = TopicId }) ->
 get_message(MessageId) ->
         find_single_tr(?messages_table, MessageId).
 
-add_message_ack(MessageAck=#erlchat_message_ack{}) ->
-        MessageAck1 = MessageAck#erlchat_message_ack { id = erlchat_utils:generate_uuid() },
-        mnesia:activity(transation, fun() -> mnesia:write(MessageAck1) end),
-        MessageAck1.
-
 get_message_acks(UserId, TopicId) ->
         Match = ets:fun2ms(fun(MessageAck=#erlchat_message_ack { user_id = AckUserId,
                                                                 topic_id = AckTopicId})
@@ -213,6 +197,40 @@ get_message_acks(UserId, TopicId) ->
                            end),
         mnesia:activity(transaction, fun() -> mnesia:select(?messages_ack_table, Match) end).
 
+write_topic(Topic=#erlchat_topic{}, Message=#erlchat_message{}, MessageAcks) ->
+        mnesia:write(Topic),
+        ok = write_message(Message, MessageAcks),
+        ok.
+
+write_message(Message=#erlchat_message{}, MessageAcks) ->
+        mnesia:write(Message),
+        lists:foreach(fun(MessageAck) -> mnesia:write(MessageAck) end, MessageAcks),
+        ok.
+
+new_topic(Owner, Users, Subject, Text) ->
+        Topic = #erlchat_topic{ id = erlchat_utils:generate_uuid(),
+                                users = Users,
+                                owner = Owner,
+                                subject = Subject },
+        {ok, {Message, MessageAcks}} = new_topic_message(Owner, Topic, Text),
+        {ok, {Topic, Message, MessageAcks}}.
+
+new_topic_message(Sender, #erlchat_topic{ id = TopicId, users = Users }, Text) ->
+        MessageId = erlchat_utils:generate_uuid(),
+        Message = #erlchat_message { id = MessageId,
+                                     sender = Sender,
+                                     topic_id = TopicId,
+                                     text = Text },
+        MessageAcks = generate_message_acks(Users, MessageId, TopicId),
+        {ok, {Message, MessageAcks}}.
+
+generate_message_acks(Users, MessageId, TopicId) ->
+        MapFun = fun(UserId) -> #erlchat_message_ack { id = erlchat_utils:generate_uuid(),
+                                                       message_id = MessageId,
+                                                       topic_id = TopicId,
+                                                       user_id = UserId }
+                 end,
+        lists:map(MapFun, Users).
 
 delete_message_ack(MessageAckId) ->
         mnesia:activity(transaction, fun() -> mnesia:delete({?messages_ack_table, MessageAckId}) end).
