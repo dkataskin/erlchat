@@ -32,37 +32,31 @@
 -behaviour(gen_server).
 
 % API
--export([start_link/0, stop/0]).
--export([reg_sub_session/1]).
+-export([start_link/1, stop/1]).
+-export([start_topic/5]).
 
 % gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 % API
-start_link() ->
-        gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(SessionId) ->
+        gen_server:start_link(?MODULE, [SessionId], []).
 
-stop() ->
-        gen_server:call(?MODULE, stop).
+stop(Pid) ->
+        gen_server:call(Pid, stop).
 
-reg_sub_session(SessionId) ->
-        gen_server:call(?MODULE, {reg_sub_session, SessionId}).
+start_topic(Pid, Owner, Users, Subject, Text) ->
+        gen_server:call(Pid, {start_topic, {Owner, Users, Subject, Text}}).
 
 % gen_server callbacks
-init(_Args) ->
-        {ok, no_state}.
+init([SessionId]) ->
+        {ok, SessionId}.
 
-handle_call({reg_sub_session, SessionId}, From, State) ->
-        SessionPid = case gproc:lookup_local_name(SessionId) of
-                      undefined ->
-                        {ok, Pid} = erlchat_session:start_link(SessionId),
-                        Pid;
+handle_call(stop, _From, State) ->
+        {stop, normal, State};
 
-                      Pid ->
-                        Pid
-                     end,
-        erlchat_session:reg_sub_session(SessionPid, From),
-        {reply, {ok, SessionPid}, State}.
+handle_call(_Request, _From, State) ->
+        {reply, ok, State}.
 
 handle_cast(_Request, State) ->
         {noreply, State}.

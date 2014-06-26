@@ -38,12 +38,13 @@
 
 init(_Transport, Req, _Opts, _Active) ->
         case is_session_valid(Req) of
-          {{error, Reason}, Req1} ->
+          {false, {error, Reason}, Req1} ->
             {shutdown, Req1, Reason};
 
-          {{ok, Session}, Req1} ->
-            {ok, Pid} = erlchat_session_mgr:reg_sub_session(Session#erlchat_session.id),
-            {ok, Req1, {Session, Pid}}
+          {true, SessionId, Req1} ->
+            true = gproc:reg({p, l, SessionId}, ignored),
+            {ok, Pid} = erlchat_session_mgr:start_link(SessionId),
+            {ok, Req1, {SessionId, Pid}}
         end.
 
 stream(<<"ping: ", Name/binary>>, Req, State) ->
@@ -71,14 +72,14 @@ terminate(_Req, _State) ->
 is_session_valid(Req) ->
         case cowboy_req:cookie(<<"erlchat_session_id">>, Req) of
           {undefined, Req1} ->
-            {{error, no_cookie}, Req1};
+            {false, {error, no_cookie}, Req1};
 
           {SessionId, Req1} ->
             case erlchat_session_store:get_session(SessionId) of
               {error, not_found} ->
-                {{error, no_session}, Req1};
+                {false, {error, no_session}, Req1};
 
-              {ok, Session} ->
-                {{ok, Session}, Req1}
+              {ok, _Session} ->
+                {true, SessionId, Req1}
             end
          end.
