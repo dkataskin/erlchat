@@ -30,12 +30,7 @@
 -author("Dmitry Kataskin").
 
 %% API
--export([get_unique_id/0, priv_dir/0, generate_uuid/0, get_timestamp/0]).
-
-get_unique_id() ->
-        {M, S, U} = erlang:now(),
-        <<N:64>> = <<M:24, S:20, U:20>>,
-        N.
+-export([priv_dir/0, generate_uuid/0, get_timestamp/0]).
 
 get_timestamp() ->
         {Mega, Sec, Micro} = erlang:now(),

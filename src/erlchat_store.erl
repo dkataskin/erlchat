@@ -53,12 +53,9 @@ start_link(Args) when is_list(Args) ->
 stop() ->
         gen_server:call(?store_server, stop).
 
-%% TODO: clumsy
+%% TODO: validation?
 add_topic(TopicStarter, Users, Subject, Text) ->
-        Topic = #erlchat_topic{ users = [TopicStarter | Users],
-                                owner = TopicStarter,
-                                subject = Subject},
-        execute_if_valid(Topic, fun() -> gen_server:call(?store_server, {add_topic, Topic, Text}) end).
+        gen_server:call(?store_server, {add_topic, {TopicStarter, [TopicStarter | Users], Subject, Text}}).
 
 get_topic(TopicId) ->
         gen_server:call(?store_server, {get_topic, TopicId}).
@@ -106,10 +103,13 @@ is_valid(Message=#erlchat_message{}) ->
         is_valid_id(Message#erlchat_message.topic_id) andalso
         is_valid_string(Message#erlchat_message.text);
 
-%is_valid(MessageAck=#erlchat_message_ack{}) ->
-%        is_valid_id(MessageAck#erlchat_message_ack.message_id) andalso
-%        is_valid_id(MessageAck#erlchat_message_ack.topic_id) andalso
-%        is_valid_id(MessageAck#erlchat_message_ack.user_id);
+%is_topic_valid(Owner, Users, Subject, Text) ->
+%        is_valid_id(Owner) andalso
+%        is_list(Users) andalso
+%        lists:all(fun is_valid_id/1, Users) andalso
+%    lists:flatlength(Users) > 0 andalso
+%    is_valid_string(Subject) andalso
+%    is_valid_string(Text).
 
 is_valid(User=#erlchat_user{}) ->
         is_valid_string(User#erlchat_user.nickname).
