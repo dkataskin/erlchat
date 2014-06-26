@@ -130,8 +130,7 @@ delete_message_ack_test(_Pid) ->
 
 get_message_acks_test(_Pid) ->
         {ok, {_Owner, [User1 | _], TopicId}} = create_test_topic(),
-        {created, {_Message, MessageAcks}} = erlchat_store:add_message(User1, TopicId, <<"hey there">>),
-        [MessageAck|_T] = MessageAcks,
+        {created, _} = erlchat_store:add_message(User1, TopicId, <<"hey there">>),
         Response = erlchat_store:get_message_acks(User1, TopicId),
         ?assertMatch({ok, [_, _]}, Response).
 
