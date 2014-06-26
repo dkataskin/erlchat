@@ -139,10 +139,7 @@ parse_session(Body, Req, State) ->
 
           false ->
             {error, error_response(bad_request, ?input_not_json, Req, State)}
-          end;
-
-parse_session(_, Req, State) ->
-        {error, error_response(bad_request, ?input_not_json, Req, State)}.
+          end.
 
 exec_against_session(Req, State, Fun) ->
         case cowboy_req:binding(?session_id_param, Req) of

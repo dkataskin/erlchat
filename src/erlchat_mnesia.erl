@@ -228,7 +228,8 @@ generate_message_acks(Users, MessageId, TopicId) ->
         MapFun = fun(UserId) -> #erlchat_message_ack { id = erlchat_utils:generate_uuid(),
                                                        message_id = MessageId,
                                                        topic_id = TopicId,
-                                                       user_id = UserId }
+                                                       user_id = UserId,
+                                                       timestamp = erlchat_utils:get_timestamp() }
                  end,
         lists:map(MapFun, Users).
 

@@ -54,9 +54,10 @@
                           topic_id = <<>>,
                           sender = <<>>,
                           text = <<>>,
-                          sent = erlang:now()}).
+                          sent_at = erlang:now()}).
 
 -record(erlchat_message_ack, {id = <<>>,
                               message_id = <<>>,
                               topic_id = <<>>,
-                              user_id = <<>>}).
+                              user_id = <<>>,
+                              timestamp = 0}).
