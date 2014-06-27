@@ -26,13 +26,13 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(erlchat_session_mgr_sup).
+-module(erlchat_session_sup).
 -author("Dmitry Kataskin").
 
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, start_session_mgr/1]).
+-export([start_link/0, start_session/1]).
 
 %% supervisor callbacks.
 -export([init/1]).
@@ -40,7 +40,7 @@
 start_link() ->
         supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
-start_session_mgr(SessionId) ->
+start_session(SessionId) ->
         SessionMgr = {erlchat_session_mgr,
                         {erlchat_session_mgr, start_link, [SessionId]},
                         transient, 5000, worker, [erlchat_session_mgr]},

@@ -93,7 +93,7 @@ init_session(Req, State) ->
           {ok, UserId} ->
             case cowboy_req:method(Req1) of
               {<<"POST">>, Req2} ->
-                {initiated, Session} = erlchat_session_store:init_session(UserId),
+                {initiated, Session} = erlchat_session_mgr:init_session(UserId),
                 Req3 = cowboy_req:set_resp_body(session_to_json(Session), Req2),
                 {true, Req3, State};
 
@@ -109,7 +109,7 @@ get_session(Req, State) ->
         exec_against_session(Req, State, fun get_session/3).
 
 get_session(SessionId, Req, State) ->
-        case erlchat_session_store:get_session(SessionId) of
+        case erlchat_session_mgr:get_session_info(SessionId) of
           {ok, Session} ->
             {session_to_json(Session), Req, State};
 
@@ -119,7 +119,7 @@ get_session(SessionId, Req, State) ->
         end.
 
 delete_session(SessionId, Req, State) ->
-        {ok, terminated} = erlchat_session_store:terminate_session(SessionId),
+        {ok, terminated} = erlchat_session_mgr:terminate_session(SessionId),
         {true, Req, State}.
 
 parse_session([{Body, true}], Req, State) ->
@@ -150,7 +150,7 @@ exec_against_session(Req, State, Fun) ->
             Fun(SessionId, Req1, State)
         end.
 
-session_to_json(#erlchat_session { id = SessionId, user_id = UserId }) ->
+session_to_json(#erlchat_session_info{ id = SessionId, user_id = UserId }) ->
         jsx:encode([{status, ok}, {user_id, UserId}, {session_id, SessionId}]).
 
 error_response(bad_request, Message, Req, State) ->

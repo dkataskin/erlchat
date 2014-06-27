@@ -3,6 +3,6 @@
             {vsn, "0.1"},
             {modules, []},
             {registered, []},
-            {applications, [kernel, stdlib, inets, cowboy]},
+            {applications, [kernel, stdlib, inets, gproc, cowboy]},
             {mod, {erlchat_app, []}},
             {env, []}]}.

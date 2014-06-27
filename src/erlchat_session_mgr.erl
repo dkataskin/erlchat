@@ -29,46 +29,82 @@
 -module(erlchat_session_mgr).
 -author("Dmitry Kataskin").
 
+-define(sessions_table, erlchat_sessions).
+
 -include("erlchat.hrl").
+-include_lib("stdlib/include/ms_transform.hrl").
 
 -behaviour(gen_server).
 
--record(session_mgr_state, { session_id = <<>> }).
+%% API
+-export([start_link/0, stop/0]).
+-export([init_session/1, terminate_session/1]).
+-export([get_user_session_infos/1, get_session_info/1]).
 
-% API
--export([start_link/1, stop/1]).
--export([start_topic/4]).
-
-% gen_server callbacks
+%% gen server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
-% API
-start_link(SessionId) ->
-        gen_server:start_link(?MODULE, [SessionId], []).
+%% API
+start_link() ->
+        gen_server:start_link({local, ?session_mgr}, ?MODULE, [], []).
 
-stop(Pid) ->
-        gen_server:call(Pid, stop).
+stop() ->
+        gen_server:call(?session_mgr, stop).
 
-start_topic(Pid, Users, Subject, Text) ->
-        gen_server:call(Pid, {start_topic, {Users, Subject, Text}}).
+init_session(UserId) ->
+        gen_server:call(?session_mgr, {init_session, UserId}).
 
-% gen_server callbacks
-init([SessionId]) ->
-        true = gproc:add_local_name(SessionId),
-        {ok, #session_mgr_state { session_id = SessionId }}.
+get_user_session_infos(UserId) ->
+        gen_server:call(?session_mgr, {get_session_infos, UserId}).
 
-handle_call({start_topic, {Owner, Users, Subject, Text}}, _From, State=#session_mgr_state { session_id = SessionId }) ->
-        {ok, Session} = get_session(SessionId),
-        Owner = Session#erlchat_session.user_id,
-        {ok, {_, _, MessageAcks}} = erlchat_store:add_topic(Owner, Users, Subject, Text),
-        ok = notify(MessageAcks),
-        {reply, ok, State};
+get_session_info(SessionId) ->
+        gen_server:call(?session_mgr, {get_session_info, SessionId}).
+
+terminate_session(SessionId) ->
+        gen_server:call(?session_mgr, {terminate_session, SessionId}).
+
+% gen server callbacks
+init(_Args) ->
+        Id = ets:new(?sessions_table, [bag,
+                                      {keypos, #erlchat_session_info.id},
+                                      {read_concurrency, true}]),
+        {ok, Id}.
+
+handle_call({init_session, UserId}, _From, State) ->
+        SessionsTableId = State,
+        SessionId = erlchat_utils:generate_uuid(),
+        {ok, _Pid} = erlchat_session_sup:start_session(SessionId),
+        Session = #erlchat_session_info{ id = erlchat_utils:generate_uuid(),
+                                    user_id = UserId,
+                                    last_seen = erlang:now() },
+        true = ets:insert(SessionsTableId, Session),
+        {reply, {initiated, Session}, State};
+
+handle_call({get_session_infos, UserId}, _From, State) ->
+        SessionsTableId = State,
+        MS = ets:fun2ms(fun(S = #erlchat_session_info{ user_id = SUserId }) when SUserId =:= UserId -> S end),
+        Sessions = ets:select(SessionsTableId, MS),
+        {reply, {ok, Sessions}, State};
+
+handle_call({get_session_info, SessionId}, _From, State) ->
+        SessionsTableId = State,
+        Resp = case ets:lookup(SessionsTableId, SessionId) of
+                [Session] -> {ok, Session};
+                [] -> {error, not_found}
+               end,
+        {reply, Resp, State};
+
+handle_call({terminate_session, SessionId}, _From, State) ->
+        SessionsTableId = State,
+        ets:delete(SessionsTableId, SessionId),
+        case gproc:lookup_local_name(SessionId) of
+          undefined -> ok;
+          Pid -> erlchat_session:stop(Pid)
+        end,
+        {reply, {ok, terminated}, State};
 
 handle_call(stop, _From, State) ->
-        {stop, normal, State};
-
-handle_call(_Request, _From, State) ->
-        {reply, ok, State}.
+        {stop, normal, ok, State}.
 
 handle_cast(_Request, State) ->
         {noreply, State}.
@@ -81,13 +117,3 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
         {ok, State}.
-
-get_session(SessionId) ->
-        erlchat_session_store:get_session(SessionId).
-
-notify(MessageAcks) ->
-        ForEach = fun(MessageAck=#erlchat_message_ack { user_id = UserId }) ->
-                    UserSessions = erlchat_session_store:get_user_sessions(UserId)
-                  end,
-        ok.
-

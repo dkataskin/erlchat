@@ -39,8 +39,7 @@ all_test_() ->
           fun stop/1,
           fun(Pid) ->
             {with, Pid,
-              [%fun topic_validation_tests/1,
-               fun add_topic_test/1,
+              [fun add_topic_test/1,
                fun get_topic_test/1,
                fun add_message_test/1,
                fun get_message_test/1,

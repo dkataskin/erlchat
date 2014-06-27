@@ -33,7 +33,7 @@
 -endif.
 
 -define(store_server, erlchat_store).
--define(session_server, erlchat_sessions).
+-define(session_mgr, erlchat_session_mgr).
 
 -record(erlchat_user, {id = <<>>,
                        avatar = <<>>,
@@ -45,10 +45,10 @@
                         users = [],
                         created_at = erlang:now()}).
 
--record(erlchat_session, {id = <<"">>,
-                          user_id = <<"">>,
-                          status = offline,
-                          last_seen = undefined}).
+-record(erlchat_session_info, {id = <<"">>,
+                               user_id = <<"">>,
+                               status = offline,
+                               last_seen = undefined}).
 
 -record(erlchat_message, {id = <<>>,
                           topic_id = <<>>,

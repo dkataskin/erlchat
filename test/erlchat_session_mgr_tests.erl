@@ -29,5 +29,104 @@
 -module(erlchat_session_mgr_tests).
 -author("Dmitry Kataskin").
 
-%% API
--export([]).
+-include("erlchat.hrl").
+
+-include_lib("eunit/include/eunit.hrl").
+-include_lib("xmerl/include/xmerl.hrl").
+
+all_test_() ->
+  {setup,
+    fun start/0,
+    fun stop/1,
+    fun(Pid) ->
+      {with, Pid,
+        [fun add_topic_test/1,
+          fun get_topic_test/1,
+          fun add_message_test/1,
+          fun get_message_test/1,
+          fun get_message_ack_test/1,
+          fun get_message_acks_test/1,
+          fun delete_message_ack_test/1]
+      }
+    end}.
+
+start() ->
+        application:start(gproc),
+        {ok, _} = erlchat_session_sup:start_link(),
+        {ok, Pid} = erlchat_session_mgr:start_link(),
+        Pid.
+
+stop() ->
+        erlchat_session_mgr:stop().
+
+start_stop_server_test_() ->
+        {setup,
+         fun() ->
+           application:start(gproc),
+           {ok, _} = erlchat_session_sup:start_link(),
+           {ok, Pid} = erlchat_session_mgr:start_link(),
+           Pid
+         end,
+         fun(_) -> erlchat_session_mgr:stop() end,
+         fun is_registered/1}.
+
+get_user_session_test_() ->
+        {setup,
+          fun() ->
+            erlchat_session_mgr:start_link(),
+            UserId = <<"user1">>,
+            {initiated, Session} = erlchat_session_mgr:init_session(UserId),
+            {UserId, Session}
+          end,
+          fun(_) -> erlchat_session_mgr:stop() end,
+          fun get_session/1}.
+
+get_users_sessions_test_() ->
+        {setup,
+          fun() ->
+            erlchat_session_mgr:start_link(),
+            UserId = <<"user1">>,
+            {initiated, S1} = erlchat_session_mgr:init_session(UserId),
+            {initiated, S2} = erlchat_session_mgr:init_session(UserId),
+            {initiated, S3} = erlchat_session_mgr:init_session(UserId),
+            {UserId, [S1, S2, S3]}
+          end,
+          fun(_) -> erlchat_session_mgr:stop() end,
+          fun get_sessions/1}.
+
+terminate_session_test_() ->
+        {setup,
+          fun() ->
+            erlchat_session_mgr:start_link(),
+            UserId = <<"user1">>,
+            {initiated, Session} = erlchat_session_mgr:init_session(UserId),
+            {initiated, _} = erlchat_session_mgr:init_session(UserId),
+            {initiated, _} = erlchat_session_mgr:init_session(UserId),
+            {UserId, Session}
+          end,
+          fun(_) -> erlchat_session_mgr:stop() end,
+          fun terminate_session/1}.
+
+is_registered(Pid) ->
+        [?_assert(erlang:is_process_alive(Pid)),
+         ?_assertEqual(Pid, whereis(?session_server))].
+
+get_session({UserId, Session=#erlchat_session_info{}}) ->
+        [?_assertMatch({ok, [Session]}, erlchat_session_mgr:get_user_session_infos(UserId)),
+         ?_assertMatch({ok, Session}, erlchat_session_mgr:get_session_info(Session#erlchat_session_info.id))].
+
+get_sessions({UserId, Sessions}) when is_list(Sessions) ->
+        {ok, TestSessions} = erlchat_session_mgr:get_user_session_infos(UserId),
+        FoldFun = fun(Session, Asserts) ->
+                    [?_assert(lists:any(fun(Elem) -> Elem =:= Session end, TestSessions)) | Asserts]
+                  end,
+        Asserts = lists:foldl(FoldFun, [], Sessions),
+        [?_assertEqual(lists:flatlength(Sessions), lists:flatlength(TestSessions)) | Asserts].
+
+terminate_session({UserId, #erlchat_session_info{ id = SessionId }}) ->
+        {ok, terminated} = erlchat_session_mgr:terminate_session(SessionId),
+        {ok, Sessions} = erlchat_session_mgr:get_user_session_infos(UserId),
+        Pred = fun(#erlchat_session_info{ id = Id }) ->
+                SessionId =/= Id
+               end,
+        [?_assert(lists:all(Pred, Sessions))].

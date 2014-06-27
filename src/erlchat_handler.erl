@@ -36,13 +36,13 @@
 -export([info/3]).
 -export([terminate/2]).
 
-init(_Transport, Req, _Opts, _Active) ->
+init(_Transport, Req, _Opts, Active) ->
         case is_session_valid(Req) of
           {false, {error, Reason}, Req1} ->
             {shutdown, Req1, Reason};
 
           {true, SessionId, Req1} ->
-            true = gproc:reg({p, l, SessionId}, ignored),
+            true = gproc:reg({p, l, SessionId}, Active),
             case gproc:lookup_local_name(SessionId) of
               undefined ->
                 {shutdown, Req1, no_session_mgr};
@@ -79,11 +79,11 @@ is_session_valid(Req) ->
             {false, {error, no_cookie}, Req1};
 
           {SessionId, Req1} ->
-            case erlchat_session_store:get_session(SessionId) of
+            case erlchat_session_mgr:get_session_info(SessionId) of
               {error, not_found} ->
                 {false, {error, no_session}, Req1};
 
               {ok, _Session} ->
                 {true, SessionId, Req1}
             end
-         end.
+        end.
