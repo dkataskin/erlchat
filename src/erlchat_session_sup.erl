@@ -41,9 +41,9 @@ start_link() ->
         supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 start_session(SessionId) ->
-        SessionMgr = {erlchat_session_mgr,
-                        {erlchat_session_mgr, start_link, [SessionId]},
-                        transient, 5000, worker, [erlchat_session_mgr]},
+        SessionMgr = {erlchat_session,
+                        {erlchat_session, start_link, [SessionId]},
+                        transient, 5000, worker, [erlchat_session]},
         supervisor:start_child(?MODULE, SessionMgr).
 
 init(_Args) ->

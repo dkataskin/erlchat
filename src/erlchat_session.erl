@@ -87,7 +87,7 @@ get_session(SessionId) ->
 
 notify(MessageAcks) ->
         ForEach = fun(MessageAck=#erlchat_message_ack { user_id = UserId }) ->
-                    UserSessions = erlchat_session_mgr:get_user_session_infos(UserId)
+                    UserSessions = erlchat_session_mgr:get_session_infos(UserId)
                   end,
         ok.
 

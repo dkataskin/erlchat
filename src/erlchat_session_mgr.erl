@@ -39,7 +39,7 @@
 %% API
 -export([start_link/0, stop/0]).
 -export([init_session/1, terminate_session/1]).
--export([get_user_session_infos/1, get_session_info/1]).
+-export([get_session_infos/1, get_session_info/1]).
 
 %% gen server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -54,7 +54,7 @@ stop() ->
 init_session(UserId) ->
         gen_server:call(?session_mgr, {init_session, UserId}).
 
-get_user_session_infos(UserId) ->
+get_session_infos(UserId) ->
         gen_server:call(?session_mgr, {get_session_infos, UserId}).
 
 get_session_info(SessionId) ->
