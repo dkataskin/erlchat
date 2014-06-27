@@ -41,10 +41,14 @@ init(_Transport, Req, _Opts, _Active) ->
           {false, {error, Reason}, Req1} ->
             {shutdown, Req1, Reason};
 
-          {true, Session, Req1} ->
+          {true, SessionId, Req1} ->
             true = gproc:reg({p, l, SessionId}, ignored),
-            {ok, Pid} = erlchat_session_mgr:start_link(SessionId),
-            {ok, Req1, {SessionId, Pid}}
+            case gproc:lookup_local_name(SessionId) of
+              undefined ->
+                {shutdown, Req1, no_session_mgr};
+              Pid ->
+                {ok, Req1, {SessionId, Pid}}
+            end
         end.
 
 stream(<<"ping: ", Name/binary>>, Req, State) ->
