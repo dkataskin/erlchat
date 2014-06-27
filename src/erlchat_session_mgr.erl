@@ -29,11 +29,15 @@
 -module(erlchat_session_mgr).
 -author("Dmitry Kataskin").
 
+-include("erlchat.hrl").
+
 -behaviour(gen_server).
+
+-record(session_mgr_state, { session_id = <<>> }).
 
 % API
 -export([start_link/1, stop/1]).
--export([start_topic/5]).
+-export([start_topic/4]).
 
 % gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -45,12 +49,19 @@ start_link(SessionId) ->
 stop(Pid) ->
         gen_server:call(Pid, stop).
 
-start_topic(Pid, Owner, Users, Subject, Text) ->
-        gen_server:call(Pid, {start_topic, {Owner, Users, Subject, Text}}).
+start_topic(Pid, Users, Subject, Text) ->
+        gen_server:call(Pid, {start_topic, {Users, Subject, Text}}).
 
 % gen_server callbacks
 init([SessionId]) ->
-        {ok, SessionId}.
+        {ok, #session_mgr_state { session_id = SessionId }}.
+
+handle_call({start_topic, {Owner, Users, Subject, Text}}, _From, State=#session_mgr_state { session_id = SessionId }) ->
+        {ok, Session} = get_session(SessionId),
+        Owner = Session#erlchat_session.user_id,
+        {ok, {_, _, MessageAcks}} = erlchat_store:add_topic(Owner, Users, Subject, Text),
+        ok = notify(MessageAcks),
+        {reply, ok, State};
 
 handle_call(stop, _From, State) ->
         {stop, normal, State};
@@ -69,3 +80,13 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
         {ok, State}.
+
+get_session(SessionId) ->
+        erlchat_session_store:get_session(SessionId).
+
+notify(MessageAcks) ->
+        ForEach = fun(MessageAck=#erlchat_message_ack { user_id = UserId }) ->
+                    UserSessions = erlchat_session_store:get_user_sessions(UserId)
+                  end,
+        ok.
+
