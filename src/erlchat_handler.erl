@@ -41,7 +41,7 @@ init(_Transport, Req, _Opts, _Active) ->
           {false, {error, Reason}, Req1} ->
             {shutdown, Req1, Reason};
 
-          {true, SessionId, Req1} ->
+          {true, Session, Req1} ->
             true = gproc:reg({p, l, SessionId}, ignored),
             {ok, Pid} = erlchat_session_mgr:start_link(SessionId),
             {ok, Req1, {SessionId, Pid}}

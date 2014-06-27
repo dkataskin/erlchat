@@ -54,6 +54,7 @@ start_topic(Pid, Users, Subject, Text) ->
 
 % gen_server callbacks
 init([SessionId]) ->
+        true = gproc:add_local_name(SessionId),
         {ok, #session_mgr_state { session_id = SessionId }}.
 
 handle_call({start_topic, {Owner, Users, Subject, Text}}, _From, State=#session_mgr_state { session_id = SessionId }) ->

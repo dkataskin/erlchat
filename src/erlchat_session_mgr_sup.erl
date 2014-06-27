@@ -26,31 +26,25 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(erlchat_sup).
+-module(erlchat_session_mgr_sup).
 -author("Dmitry Kataskin").
 
 -behaviour(supervisor).
 
-%% API.
--export([start_link/0]).
+%% API
+-export([start_link/0, start_session_mgr/1]).
 
 %% supervisor callbacks.
 -export([init/1]).
 
-%% API.
--spec start_link() -> {ok, pid()}.
 start_link() ->
         supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
-%% supervisor callbacks.
+start_session_mgr(SessionId) ->
+        SessionMgr = {erlchat_session_mgr,
+                        {erlchat_session_mgr, start_link, [SessionId]},
+                        transient, 5000, worker, [erlchat_session_mgr]},
+        supervisor:start_child(?MODULE, SessionMgr).
+
 init(_Args) ->
-        SessionServer = {erlchat_session_server,
-                            {erlchat_session_store, start_link, []}, permanent, 5000, worker, [erlchat_session_store]},
-        Store = {erlchat_store,
-                            {erlchat_store, start_link, [[{type, mnesia}]]}, permanent, 5000, worker, [erlchat_store]},
-
-        SessionMgrSup = {erlchat_session_mgr_sup,
-                            {erlchat_session_mgr_sup, start_link, []}, transient, infinity, supervisor, [erlchat_session_mgr_sup]},
-
-        Procs = [SessionServer, SessionMgrSup, Store],
-        {ok, {{one_for_one, 10, 10}, Procs}}.
+        {ok, {{one_for_one, 10, 10}, []}}.

@@ -70,6 +70,8 @@ init(_Args) ->
 
 handle_call({init_session, UserId}, _From, State) ->
         SessionsTableId = State,
+        SessionId = erlchat_utils:generate_uuid(),
+        {ok, _Pid} = erlchat_session_mgr_sup:start_session_mgr(SessionId),
         Session = #erlchat_session{ id = erlchat_utils:generate_uuid(),
                                     user_id = UserId,
                                     last_seen = erlang:now() },
@@ -93,6 +95,10 @@ handle_call({get_session, SessionId}, _From, State) ->
 handle_call({terminate_session, SessionId}, _From, State) ->
         SessionsTableId = State,
         ets:delete(SessionsTableId, SessionId),
+        case gproc:lookup_local_name(SessionId) of
+          undefined -> ok;
+          Pid -> erlchat_session_mgr:stop(Pid)
+        end,
         {reply, {ok, terminated}, State};
 
 handle_call(stop, _From, State) ->
