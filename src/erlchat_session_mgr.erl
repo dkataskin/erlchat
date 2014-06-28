@@ -74,9 +74,9 @@ handle_call({init_session, UserId}, _From, State) ->
         SessionsTableId = State,
         SessionId = erlchat_utils:generate_uuid(),
         {ok, _Pid} = erlchat_session_sup:start_session(SessionId),
-        Session = #erlchat_session_info{ id = erlchat_utils:generate_uuid(),
-                                    user_id = UserId,
-                                    last_seen = erlang:now() },
+        Session = #erlchat_session_info { id = erlchat_utils:generate_uuid(),
+                                          user_id = UserId,
+                                          last_seen = erlang:now() },
         true = ets:insert(SessionsTableId, Session),
         {reply, {initiated, Session}, State};
 

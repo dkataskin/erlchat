@@ -41,9 +41,10 @@ all_test_() ->
           fun(Pid) ->
             {with, Pid,
               [fun is_registered/1,
-               fun get_session_infos/1,
-               fun get_sessions/1,
-               fun terminate_session/1]
+               fun init_session/1,
+               fun terminate_session/1,
+               fun get_session_info/1,
+               fun get_session_infos/1]
             }
           end}.
 
@@ -60,13 +61,44 @@ is_registered(Pid) ->
         ?_assert(erlang:is_process_alive(Pid)),
         ?_assertEqual(Pid, whereis(?session_mgr)).
 
-get_session_infos(_Pid) ->
+init_session(_Pid) ->
+        UserId = erlchat_utils:generate_uuid(),
+        Resp = erlchat_session_mgr:init_session(UserId),
+        ?assertMatch({initiated, _}, Resp),
+        {initiated, SessionInfo} = Resp,
+        ?assertEqual(UserId, SessionInfo#erlchat_session_info.user_id),
+        ?assertNotEqual(<<>>, SessionInfo#erlchat_session_info.id),
+
+        SessionPid = gproc:lookup_local_name(SessionInfo#erlchat_session_info.id),
+
+        ?assertNotEqual(undefined, SessionPid),
+        ?_assert(erlang:is_process_alive(SessionPid)).
+
+terminate_session(_Pid) ->
+        UserId = erlchat_utils:generate_uuid(),
+        {initiated, SessionInfo} = erlchat_session_mgr:init_session(UserId),
+        {initiated, _} = erlchat_session_mgr:init_session(UserId),
+        {initiated, _} = erlchat_session_mgr:init_session(UserId),
+
+        SessionId = SessionInfo#erlchat_session_info.id,
+        SessionPid = gproc:lookup_local_name(SessionId),
+
+        Resp = erlchat_session_mgr:terminate_session(SessionId),
+        ?assertMatch({ok, terminated}, Resp),
+        {ok, SessionInfos} = erlchat_session_mgr:get_session_infos(UserId),
+        Pred = fun(#erlchat_session_info{ id = Id }) ->
+          SessionId =/= Id
+        end,
+        ?assert(lists:all(Pred, SessionInfos)),
+        ?_assertNot(erlang:is_process_alive(SessionPid)).
+
+get_session_info(_Pid) ->
         UserId = erlchat_utils:generate_uuid(),
         {initiated, Session} = erlchat_session_mgr:init_session(UserId),
         ?assertMatch({ok, [Session]}, erlchat_session_mgr:get_session_infos(UserId)),
         ?assertMatch({ok, Session}, erlchat_session_mgr:get_session_info(Session#erlchat_session_info.id)).
 
-get_sessions(_Pid) ->
+get_session_infos(_Pid) ->
         UserId = erlchat_utils:generate_uuid(),
         {initiated, S1} = erlchat_session_mgr:init_session(UserId),
         {initiated, S2} = erlchat_session_mgr:init_session(UserId),
@@ -81,18 +113,3 @@ get_sessions(_Pid) ->
               end,
         lists:foreach(Fun, TestSessions),
         ?_assertEqual(lists:flatlength(Sessions), lists:flatlength(TestSessions)).
-
-terminate_session(_Pid) ->
-        UserId = erlchat_utils:generate_uuid(),
-        {initiated, Session} = erlchat_session_mgr:init_session(UserId),
-        {initiated, _} = erlchat_session_mgr:init_session(UserId),
-        {initiated, _} = erlchat_session_mgr:init_session(UserId),
-
-        SessionId = Session#erlchat_session_info.id,
-
-        {ok, terminated} = erlchat_session_mgr:terminate_session(SessionId),
-        {ok, Sessions} = erlchat_session_mgr:get_session_infos(UserId),
-        Pred = fun(#erlchat_session_info{ id = Id }) ->
-                SessionId =/= Id
-               end,
-        ?assert(lists:all(Pred, Sessions)).
