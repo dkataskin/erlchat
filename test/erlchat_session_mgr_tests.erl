@@ -71,7 +71,7 @@ init_session(_Pid) ->
 
         SessionPid = gproc:lookup_local_name(SessionInfo#erlchat_session_info.id),
 
-        ?assertNotEqual(undefined, SessionPid),
+        ?assertNotMatch(undefined, SessionPid),
         ?_assert(erlang:is_process_alive(SessionPid)).
 
 terminate_session(_Pid) ->
