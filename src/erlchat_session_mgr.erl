@@ -74,7 +74,7 @@ handle_call({init_session, UserId}, _From, State) ->
         SessionsTableId = State,
         SessionId = erlchat_utils:generate_uuid(),
         {ok, _Pid} = erlchat_session_sup:start_session(SessionId),
-        Session = #erlchat_session_info { id = erlchat_utils:generate_uuid(),
+        Session = #erlchat_session_info { id = SessionId,
                                           user_id = UserId,
                                           last_seen = erlang:now() },
         true = ets:insert(SessionsTableId, Session),
@@ -96,10 +96,12 @@ handle_call({get_session_info, SessionId}, _From, State) ->
 
 handle_call({terminate_session, SessionId}, _From, State) ->
         SessionsTableId = State,
-        ets:delete(SessionsTableId, SessionId),
+        true = ets:delete(SessionsTableId, SessionId),
         case gproc:lookup_local_name(SessionId) of
-          undefined -> ok;
-          Pid -> erlchat_session:stop(Pid)
+          undefined ->
+            ok;
+          Pid ->
+            erlchat_session:stop(Pid)
         end,
         {reply, {ok, terminated}, State};
 
