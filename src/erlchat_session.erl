@@ -65,7 +65,7 @@ handle_call({start_topic, {Owner, Users, Subject, Text}}, _From, State=#session_
         {reply, ok, State};
 
 handle_call(stop, _From, State) ->
-        {stop, normal, State};
+        {stop, normal, ok, State};
 
 handle_call(_Request, _From, State) ->
         {reply, ok, State}.
