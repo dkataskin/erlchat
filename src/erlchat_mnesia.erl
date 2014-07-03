@@ -100,7 +100,7 @@ handle_call({delete_message_ack, MessageAckId}, _From, State) ->
         {reply, {ok, deleted}, State};
 
 handle_call(stop, _From, State) ->
-        {stop, normal, shutdown_ok, State}.
+        {stop, normal, ok, State}.
 
 handle_cast(_Request, State) ->
         {noreply, State}.
