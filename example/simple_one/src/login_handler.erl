@@ -26,30 +26,24 @@
 % OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
--module(simple_one_sup).
+-module(login_handler).
+-author("Dmitry Kataskin").
 
--behaviour(supervisor).
+-export([init/3]).
+-export([handle/2]).
+-export([terminate/3]).
 
-%% API
--export([start_link/0]).
+init(_Transport, Req, []) ->
+        {ok, Req, undefined}.
 
-%% Supervisor callbacks
--export([init/1]).
+handle(Req, State) ->
+        ReqBody = jsx:encode([{user_id, <<"04fc76155306762bcec734ce0ab3a52e">>}]),
+        {ok, {_, _, Body}} = httpc:request(post, {"http://localhost:8085/session", [], "application/json", ReqBody}, [], []),
+        [_Status, _User, {<<"session_id">>, SessionId}] = jsx:decode(list_to_binary(Body)),
+        {ok, HTML} = login_dtl:render([]),
+        Req1 = cowboy_req:set_resp_cookie(<<"erlchat_session_id">>, SessionId, [], Req),
+        {ok, Req2} = cowboy_req:reply(200, [], HTML, Req1),
+        {ok, Req2, State}.
 
-%% Helper macro for declaring children of supervisor
--define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
-
-%% ===================================================================
-%% API functions
-%% ===================================================================
-
-start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
-
-%% ===================================================================
-%% Supervisor callbacks
-%% ===================================================================
-
-init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
-
+terminate(_Reason, _Req, _State) ->
+        ok.
