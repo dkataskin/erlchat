@@ -27,6 +27,7 @@
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -module(simple_one_sup).
+-author("Dmitry Kataskin").
 
 -behaviour(supervisor).
 

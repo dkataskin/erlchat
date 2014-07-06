@@ -27,7 +27,7 @@
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -module(chat_handler).
--author("kotoff").
+-author("Dmitry Kataskin").
 
 %% API
 -export([]).
