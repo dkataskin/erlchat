@@ -11,36 +11,16 @@
         <script src="/js/maxmertkit.js"></script>
     </head>
     <body>
+        {% for user in users %}
         <div class="-row">
             <div class="-col6 -offset5">
-                <a href="#" class="-avatar _round_ _bordered_">
-                        <figure class="-thumbnail">
-                            <img src="https://s3.amazonaws.com/uifaces/faces/twitter/krystalfister/128.jpg" alt="Krystalfister">
-                        </figure>@Krystalfister
-                    </a>
-            </div>
-        </div>
-        <div class="-row">hey</div>
-        <div class="-row">
-            <div class="-col6 -offset5">
-                <a href="#" class="-avatar _round_ _bordered_">
+                <a href="#{{ user.2 }}" class="-avatar _round_ _bordered_">
                     <figure class="-thumbnail">
-                        <img src="https://s3.amazonaws.com/uifaces/faces/twitter/krystalfister/128.jpg" alt="Krystalfister">
-                    </figure>@Krystalfister
-                </a>
+                        <img src="{{ user.4 }}" alt="{{ user.3 }}">
+                    </figure>
+                </a> {{ user.3 }}
             </div>
         </div>
-        <div class="-row">
-            <div class="-container"></div>
-        </div>
-        <div class="-row">
-            <div class="-col6 -offset5">
-                <a href="#" class="-avatar _round_ _bordered_">
-                    <figure class="-thumbnail">
-                        <img src="https://s3.amazonaws.com/uifaces/faces/twitter/krystalfister/128.jpg" alt="Krystalfister">
-                    </figure>@Krystalfister
-                </a>
-            </div>
-        </div>
+        {% endfor %}
     </body>
 </html>

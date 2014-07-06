@@ -40,10 +40,15 @@ handle(Req, State) ->
         %ReqBody = jsx:encode([{user_id, <<"04fc76155306762bcec734ce0ab3a52e">>}]),
         %{ok, {_, _, Body}} = httpc:request(post, {"http://localhost:8085/session", [], "application/json", ReqBody}, [], []),
         %[_Status, _User, {<<"session_id">>, SessionId}] = jsx:decode(list_to_binary(Body)),
-        {ok, HTML} = login_dtl:render([]),
+        {ok, HTML} = login_dtl:render([{users, get_users()}]),
         %Req1 = cowboy_req:set_resp_cookie(<<"erlchat_session_id">>, SessionId, [], Req),
         {ok, Req2} = cowboy_req:reply(200, [], HTML, Req),
         {ok, Req2, State}.
 
 terminate(_Reason, _Req, _State) ->
         ok.
+
+get_users() ->
+        [{user, <<"12345">>, <<"Ivan Petrov">>, <<"/img/12345.jpg">>},
+         {user, <<"123456">>, <<"Nikolay Ivanov">>, <<"/img/123456.jpg">>},
+         {user, <<"1234567">>, <<"Sofya Nikolaeva">>, <<"/img/1234567.jpg">>}].
