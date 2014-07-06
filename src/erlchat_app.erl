@@ -63,4 +63,4 @@ static_files(FileType) ->
           {dir, static_content_dir(FileType), [{mimetypes, cow_mimetypes, web}]}}.
 
 static_content_dir(FileType) ->
-        erlchat_utils:priv_dir() ++ "/" ++ FileType.
+        filename:join(erlchat_utils:priv_dir(), FileType).

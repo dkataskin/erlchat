@@ -38,7 +38,27 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    simple_one_sup:start_link().
+        Dispatch = cowboy_router:compile([
+          {'_', [
+            static_files("js"),
+            static_files("css"),
+            static_files("img"),
+            {"/", toppage_handler, []},
+            {"/login", login_handler, []},
+            {"/chat", chat_handler, []}
+          ]}
+        ]),
+        {ok, _} = cowboy:start_http(http, 100,
+          [{port, 8086}], [{env, [{dispatch, Dispatch}]}]
+        ),
+        simple_one_sup:start_link().
 
 stop(_State) ->
-    ok.
+        ok.
+
+static_files(FileType) ->
+        {lists:append(["/", FileType, "/[...]"]), cowboy_static,
+          {dir, static_content_dir(FileType), [{mimetypes, cow_mimetypes, web}]}}.
+
+static_content_dir(FileType) ->
+        filename:join(erlchat_utils:priv_dir(), FileType).
