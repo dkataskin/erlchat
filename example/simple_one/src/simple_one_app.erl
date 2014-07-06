@@ -43,7 +43,7 @@ start(_StartType, _StartArgs) ->
             static_files("js"),
             static_files("css"),
             static_files("img"),
-            {"/", toppage_handler, []},
+            {"/", login_handler, []},
             {"/login", login_handler, []},
             {"/chat", chat_handler, []}
           ]}
@@ -61,4 +61,4 @@ static_files(FileType) ->
           {dir, static_content_dir(FileType), [{mimetypes, cow_mimetypes, web}]}}.
 
 static_content_dir(FileType) ->
-        filename:join(erlchat_utils:priv_dir(), FileType).
+        filename:join(simple_one_utils:priv_dir(), FileType).

@@ -119,5 +119,3 @@ is_valid_id(Id) ->
 
 is_valid_string(BitString) ->
         is_binary(BitString) andalso BitString =/= <<>>.
-
-
