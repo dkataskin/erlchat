@@ -11,16 +11,26 @@
         <script src="/js/maxmertkit.js"></script>
     </head>
     <body>
-        {% for user in users %}
-        <div class="-row">
-            <div class="-col6 -offset5">
-                <a href="#{{ user.2 }}" class="-avatar _round_ _bordered_">
-                    <figure class="-thumbnail">
-                        <img src="{{ user.4 }}" alt="{{ user.3 }}">
-                    </figure>
-                </a> {{ user.3 }}
+        <div id="users">
+            {% for user in users %}
+            <div class="-row">
+                <div class="-col6 -offset5">
+                    <a href="#{{ user.2 }}" class="-avatar _round_ _bordered_">
+                        <figure class="-thumbnail">
+                            <img src="{{ user.4 }}" alt="{{ user.3 }}">
+                        </figure>
+                    </a> {{ user.3 }}
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </body>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#users").find(".-avatar").hover(function(){
+                $(this).toggleClass("-primary-");
+            })
+        });
+    </script>
 </html>
