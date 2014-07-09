@@ -28,7 +28,8 @@
 
     <script type="text/javascript">
         $(document).ready(function(){
-            $("#users").find(".-avatar").hover(function(){
+            $("#users").find(".-avatar")
+                        .hover(function(){
                 $(this).toggleClass("-primary-");
             })
         });
