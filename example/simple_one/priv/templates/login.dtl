@@ -15,7 +15,7 @@
             {% for user in users %}
             <div class="-row">
                 <div class="-col6 -offset5">
-                    <a href="#{{ user.2 }}" class="-avatar _round_ _bordered_">
+                    <a href="/user/{{ user.2 }}/chat" class="-avatar _round_ _bordered_">
                         <figure class="-thumbnail">
                             <img src="{{ user.4 }}" alt="{{ user.3 }}">
                         </figure>

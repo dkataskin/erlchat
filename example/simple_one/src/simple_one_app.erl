@@ -45,7 +45,7 @@ start(_StartType, _StartArgs) ->
             static_files("img"),
             {"/", login_handler, []},
             {"/login", login_handler, []},
-            {"/chat", chat_handler, []}
+            {"/user/:user_id/chat", chat_handler, []}
           ]}
         ]),
         {ok, _} = cowboy:start_http(http, 100,
