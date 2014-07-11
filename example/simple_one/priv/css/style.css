@@ -1,4 +1,9 @@
+body {
+    background-image:url('/img/background1.png');
+    background-repeat:repeat;
+}
+
 div.topheader {
     height: 3em;
-    background: red;
+    background: #6490b1;
 }
