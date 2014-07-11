@@ -3,7 +3,20 @@ body {
     background-repeat:repeat;
 }
 
+footer {
+	width: 100%;
+	height: 2em;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	/*background: #6490b1;*/
+}
+
 div.topheader {
     height: 3em;
     background: #6490b1;
+}
+
+.descrtext {
+    color: #3a6d99;
 }

@@ -17,6 +17,11 @@
                 <div class="topheader"></div>
             </div>
         </div>
+
         {% block content %}{% endblock %}
+        {% block page_scripts %}{% endblock %}
     </body>
+    <footer>
+        <p class="descrtext _center_">erlchat, 2014</p>
+    </footer>
 </html>
