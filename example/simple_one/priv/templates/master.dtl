@@ -4,24 +4,15 @@
         <meta charset="utf-8" />
         <title>{% block title %}{% endblock %}</title>
 
-        <link rel="stylesheet" type="text/css" href="/css/maxmertkit.css" />
+        <link rel="stylesheet" type="text/css" href="/css/semantic.min.css" />
         <link rel="stylesheet" type="text/css" href="/css/style.css" />
 
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
         <script src="/js/jquery.json.js"></script>
-        <script src="/js/maxmertkit.js"></script>
+        <script src="/js/semantic.min.js"></script>
     </head>
     <body>
-        <div class="-row">
-            <div class="-col12">
-                <div class="topheader"></div>
-            </div>
-        </div>
-
         {% block content %}{% endblock %}
         {% block page_scripts %}{% endblock %}
     </body>
-    <footer>
-        <p class="descrtext _center_">erlchat, 2014</p>
-    </footer>
 </html>

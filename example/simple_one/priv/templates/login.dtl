@@ -2,18 +2,23 @@
 {% block title %}Conversations{% endblock %}
 
 {% block content %}
-    <div id="users">
-        {% for user in users %}
-        <div class="-row">
-            <div class="-col6 -offset5">
-                <a href="/user/{{ user.2 }}/chat" class="-avatar _round_ _bordered_">
-                    <figure class="-thumbnail">
-                        <img src="{{ user.4 }}" alt="{{ user.3 }}">
-                    </figure>
-                </a> {{ user.3 }}
+    <div class="ui three column grid">
+        <div class="column">
+        </div>
+        <div class="column">
+            <div class="ui list">
+                {% for user in users %}
+                <a class="item" href="/user/{{ user.2 }}/chat">
+                    <img class="circular ui small image" src="{{ user.4 }}" alt="{{ user.3 }}">
+                    <div class="content">
+                        <div class="header">{{ user.3 }}</div>
+                    </div>
+                </a>
+                {% endfor %}
             </div>
         </div>
-        {% endfor %}
+        <div class="column">
+        </div>
     </div>
 {% endblock %}
 
