@@ -1,4 +1,5 @@
 body {
+    height: 100%;
     background-image:url('/img/background1.png');
     background-repeat:repeat;
 }
@@ -15,6 +16,10 @@ footer {
 div.topheader {
     height: 3em;
     background: #6490b1;
+}
+
+div.test {
+    background: white;
 }
 
 .descrtext {
