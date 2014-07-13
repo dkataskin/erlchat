@@ -2,10 +2,10 @@
 {% block title %}Conversations{% endblock %}
 
 {% block content %}
-    <div class="ui three column grid">
-        <div class="column">
+    <div class="ui page grid">
+        <div class="six wide column">
         </div>
-        <div class="column">
+        <div class="four wide column">
             <div class="ui list">
                 {% for user in users %}
                 <a class="item" href="/user/{{ user.2 }}/chat">
@@ -16,8 +16,6 @@
                 </a>
                 {% endfor %}
             </div>
-        </div>
-        <div class="column">
         </div>
     </div>
 {% endblock %}
