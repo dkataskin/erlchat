@@ -43,6 +43,7 @@ start(_StartType, _StartArgs) ->
             static_files("js"),
             static_files("css"),
             static_files("img"),
+            {"/fonts/[...]", cowboy_static, {dir, static_content_dir("fonts")}},
             {"/", login_handler, []},
             {"/login", login_handler, []},
             {"/user/:user_id/chat", chat_handler, []}
@@ -60,5 +61,5 @@ static_files(FileType) ->
         {lists:append(["/", FileType, "/[...]"]), cowboy_static,
           {dir, static_content_dir(FileType), [{mimetypes, cow_mimetypes, web}]}}.
 
-static_content_dir(FileType) ->
-        filename:join(simple_one_utils:priv_dir(), FileType).
+static_content_dir(Dir) ->
+        filename:join(simple_one_utils:priv_dir(), Dir).

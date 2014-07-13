@@ -2,26 +2,50 @@
 {% block title %}Conversations{% endblock %}
 
 {% block content %}
-    <div class="-row">
-        <div class="-col3 -offset2 test">
-            <p>test</p>
+    <div class="ui menu">
+        <a class="active item">
+            <i class="home icon"></i> Home
+        </a>
+        <div class="right menu">
+            <a class="ui item">
+                Logout
+            </a>
         </div>
     </div>
-    <div class="-row">
-        <div class="-col3 -offset2 test">
-            <ul class="-list-group">
-                <li>
-                    <div class="-group">
-                        <a href="#" class="-avatar">
-                            <figure class="-thumbnail">
-                                <img src="https://s3.amazonaws.com/uifaces/faces/twitter/krystalfister/128.jpg" alt="Krystalfister">
-                            </figure>Krystalfister
-                        </a>
+
+    <div class="ui celled grid">
+        <div class="two wide column">
+        </div>
+
+        <div class="row">
+            <div class="three wide column">
+                <div class="ui icon input">
+                    <input type="text" placeholder="Search...">
+                    <i class="search icon"></i>
+                </div>
+            </div>
+            <div class="one wide column">
+            </div>
+            <div class="eight wide column">
+            </div>
+        </div>
+        <div class="row">
+            <div class="four wide column">
+                <div class="ui list">
+                    <div class="item">
+                        <img class="ui avatar image" src="/img/12345.jpg">
+                        <div class="content">
+                            <div class="header">Schnoodle</div>
+                            Your new dog
+                        </div>
                     </div>
-                </li>
-                <li><a>Menu 2</a></li>
-                <li><a>Menu 3</a></li>
-            </ul>
+                </div>
+            </div>
+            <div class="eight wide column">
+            </div>
+        </div>
+
+        <div class="two wide column">
         </div>
     </div>
 {% endblock %}
