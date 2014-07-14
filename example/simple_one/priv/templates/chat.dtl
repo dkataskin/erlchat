@@ -3,9 +3,6 @@
 
 {% block content %}
     <div class="ui menu">
-        <a class="active item">
-            <i class="home icon"></i> Home
-        </a>
         <div class="right menu">
             <a class="ui item">
                 Logout
