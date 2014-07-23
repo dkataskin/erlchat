@@ -22,11 +22,6 @@
 
 {% block page_scripts %}
     <script type="text/javascript">
-        $(document).ready(function(){
-            $("#users").find(".-avatar")
-                        .hover(function(){
-                $(this).toggleClass("-primary-");
-            })
-        });
+       
     </script>
 {% endblock %}
